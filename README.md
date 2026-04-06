@@ -136,6 +136,20 @@ The Laminar loader now hydrates detailed LLM and action spans when available, wh
 
 - separation of internal Laminar/OpenHands persistence activity into an `overhead` action bucket
 
+
+## Included generated dashboards
+
+This repo also includes committed HTML artifacts you can open directly from the repository:
+
+- Single trace: [`laminar_trace_39f38cb4.html`](./laminar_trace_39f38cb4.html)
+- Single trace: [`laminar_trace_537db26f.html`](./laminar_trace_537db26f.html)
+- Single trace: [`laminar_trace_67ade002.html`](./laminar_trace_67ade002.html)
+- Single trace: [`laminar_trace_9c186814.html`](./laminar_trace_9c186814.html)
+- Comparison view: [`agent_viz_compare.html`](./agent_viz_compare.html)
+- Comparison view (two live traces): [`agent_viz_compare_two_live.html`](./agent_viz_compare_two_live.html)
+- Comparison view (four live traces): [`agent_viz_compare_four_live.html`](./agent_viz_compare_four_live.html)
+
+
 ## Compare multiple runs
 
 You can also render a lightweight comparison dashboard across multiple Laminar references:
