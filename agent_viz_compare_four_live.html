@@ -1,0 +1,1428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Laminar run comparison</title>
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0f1220;
+      --panel: #171b2e;
+      --panel-soft: #11162a;
+      --border: #2b3355;
+      --text: #edf1ff;
+      --muted: #9aa6d1;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: Inter, ui-sans-serif, system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); }
+    .page { max-width: 1460px; margin: 0 auto; padding: 24px; }
+    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 20px; }
+    .card, .panel, .focus-card { background: linear-gradient(180deg, var(--panel), var(--panel-soft)); border: 1px solid var(--border); border-radius: 16px; }
+    .card { padding: 14px; min-height: 90px; }
+    .card-label { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+    .card-value { font-size: 24px; font-weight: 650; }
+    .grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
+    .panel { padding: 14px; }
+    .panel h2 { margin: 0 0 6px; font-size: 18px; }
+    .panel p { margin: 0 0 12px; color: var(--muted); font-size: 14px; }
+    .chart { width: 100%; height: 420px; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { text-align: left; padding: 10px 12px; border-top: 1px solid rgba(154, 166, 209, 0.12); font-size: 14px; }
+    th { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; }
+    .focus-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+    .focus-card { padding: 14px; }
+    .focus-card h3 { margin: 0 0 8px; font-size: 16px; }
+    .focus-meta { margin: 0 0 12px; color: var(--muted); font-size: 13px; }
+    .focus-columns { display: grid; grid-template-columns: 1fr; gap: 12px; }
+    .focus-columns h4 { margin: 0 0 8px; font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
+    .focus-list { list-style: none; margin: 0; padding: 0; }
+    .focus-list li { display: flex; justify-content: space-between; gap: 8px; padding: 6px 0; border-top: 1px solid rgba(154, 166, 209, 0.12); font-size: 13px; }
+    .focus-list li:first-child { border-top: 0; padding-top: 0; }
+    .glossary-row { display: grid; grid-template-columns: 190px 1fr; gap: 14px; padding: 10px 0; border-top: 1px solid rgba(154, 166, 209, 0.12); }
+    .glossary-row:first-child { border-top: 0; padding-top: 0; }
+    .glossary-term { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; }
+    .glossary-text { font-size: 14px; line-height: 1.45; }
+    @media (min-width: 980px) {
+      .grid.two { grid-template-columns: 1fr 1fr; }
+      .focus-columns { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <h1>Laminar run comparison</h1>
+    <p style="margin:0 0 20px;color:#9aa6d1;">Compare multiple runs under the same harness contract: success, token spend, carry-forward, and straightforward lower-is-better search and verification burdens.</p>
+    <div class="cards"><div class="card"><div class="card-label">Runs</div><div class="card-value">4</div></div><div class="card"><div class="card-label">Successes</div><div class="card-value">1/4</div></div><div class="card"><div class="card-label">Avg cache ratio</div><div class="card-value">49.5%</div></div><div class="card"><div class="card-label">Avg carry-forward ratio</div><div class="card-value">98.4%</div></div><div class="card"><div class="card-label">Avg files before first edit</div><div class="card-value">18.0</div></div><div class="card"><div class="card-label">Avg tests before first pass</div><div class="card-value">113.5</div></div></div>
+    <div class="grid two">
+      <section class="panel">
+        <h2>Success versus token spend</h2>
+        <p>Each point is one run, sized by total steps and colored by cache ratio. Hover for output tokens, tests before first pass, and files before first edit.</p>
+        <div id="success-scatter" class="chart"></div>
+      </section>
+      <section class="panel">
+        <h2>Action mix per run</h2>
+        <p>Normalized action shares across all classified events, including runtime overhead.</p>
+        <div id="action-mix" class="chart"></div>
+      </section>
+    </div>
+    <div class="grid two">
+      <section class="panel">
+        <h2>Visible action mix per run</h2>
+        <p>Same mix after removing overhead, which makes exploration, editing, testing, and finalization easier to compare.</p>
+        <div id="visible-action-mix" class="chart"></div>
+      </section>
+      <section class="panel">
+        <h2>Overhead breakdown per run</h2>
+        <p>Subdivides overhead into persistence lookups, persistence writes, orchestration, and unknown internal work.</p>
+        <div id="overhead-breakdown" class="chart"></div>
+      </section>
+    </div>
+    <div class="grid two">
+      <section class="panel">
+        <h2>Search burden versus test burden</h2>
+        <p>X-axis is files before the first edit; Y-axis is tests before the first pass or run end. Marker size tracks total steps and color tracks carry-forward ratio.</p>
+        <div id="burden-scatter" class="chart"></div>
+      </section>
+      <section class="panel">
+        <h2>Direct burden metrics per run</h2>
+        <p>Grouped bars show files before first edit, edits before first pass, tests before first pass, tests after first pass, and retry bursts. Lower is usually better.</p>
+        <div id="burden-bars" class="chart"></div>
+      </section>
+    </div>
+    <section class="panel">
+      <h2>Run focus snapshots</h2>
+      <p>Top modules and files help distinguish runs that share the same benchmark pattern but work in different areas of the repo.</p>
+      <div class="focus-grid"><article class="focus-card"><h3>537db26f</h3><p class="focus-meta">first edit step: 214 · files before edit: 31 · edits before first pass: 0 · tests before first pass: 226</p><div class="focus-columns"><div><h4>Top modules</h4><ul class="focus-list"><li><span>workspace</span><strong>23</strong></li><li><span>simpy</span><strong>9</strong></li><li><span>*.py</span><strong>1</strong></li><li><span>exceptions.py</span><strong>1</strong></li></ul></div><div><h4>Top files</h4><ul class="focus-list"><li><span>/workspace/simpy</span><strong>68</strong></li><li><span>/workspace/simpy/src/simpy/events.py</span><strong>60</strong></li><li><span>/workspace/simpy/src/simpy/core.py</span><strong>16</strong></li><li><span>/workspace/simpy/src/simpy/rt.py</span><strong>14</strong></li></ul></div></div></article><article class="focus-card"><h3>9c186814</h3><p class="focus-meta">first edit step: 150 · files before edit: 9 · edits before first pass: 2 · tests before first pass: 48</p><div class="focus-columns"><div><h4>Top modules</h4><ul class="focus-list"><li><span>workspace</span><strong>9</strong></li><li><span>tests/test_deprecated.py</span><strong>1</strong></li><li><span>classic.py</span><strong>1</strong></li><li><span>tests/test_sphinx.py</span><strong>1</strong></li></ul></div><div><h4>Top files</h4><ul class="focus-list"><li><span>/workspace/deprecated</span><strong>28</strong></li><li><span>/workspace/deprecated/deprecated/sphinx.py</span><strong>12</strong></li><li><span>/workspace/deprecated/deprecated/classic.py</span><strong>6</strong></li><li><span>tests/test_deprecated.py</span><strong>6</strong></li></ul></div></div></article><article class="focus-card"><h3>39f38cb4</h3><p class="focus-meta">first edit step: 198 · files before edit: 16 · edits before first pass: 0 · tests before first pass: 48</p><div class="focus-columns"><div><h4>Top modules</h4><ul class="focus-list"><li><span>workspace</span><strong>14</strong></li><li><span>src/jinja2</span><strong>8</strong></li><li><span>tmp</span><strong>8</strong></li><li><span>extracted</span><strong>5</strong></li></ul></div><div><h4>Top files</h4><ul class="focus-list"><li><span>/workspace/jinja</span><strong>71</strong></li><li><span>/workspace/jinja/src/jinja2/utils.py</span><strong>52</strong></li><li><span>/tmp/jinja2_download</span><strong>26</strong></li><li><span>/workspace/jinja/src/jinja2/nodes.py</span><strong>12</strong></li></ul></div></div></article><article class="focus-card"><h3>67ade002</h3><p class="focus-meta">first edit step: 152 · files before edit: 16 · edits before first pass: 17 · tests before first pass: 132</p><div class="focus-columns"><div><h4>Top modules</h4><ul class="focus-list"><li><span>workspace</span><strong>19</strong></li><li><span>jwt</span><strong>11</strong></li><li><span>*.py</span><strong>1</strong></li><li><span>tests/test_algorithms.py</span><strong>1</strong></li></ul></div><div><h4>Top files</h4><ul class="focus-list"><li><span>/workspace/pyjwt</span><strong>113</strong></li><li><span>/workspace/pyjwt/jwt/algorithms.py</span><strong>50</strong></li><li><span>/workspace/pyjwt/jwt/api_jwt.py</span><strong>29</strong></li><li><span>tests/test_algorithms.py</span><strong>18</strong></li></ul></div></div></article></div>
+    </section>
+    <section class="panel">
+      <h2>Run summary table</h2>
+      <p>Compact per-run metrics using direct lower-is-better search and verification counts.</p>
+      <table>
+        <thead>
+          <tr><th>Label</th><th>Run ID</th><th>Success</th><th>Input tokens</th><th>Output tokens</th><th>Files before first edit</th><th>Edits before first pass</th><th>Tests before first pass</th><th>Tests after first pass</th><th>Max retry burst</th><th>Carry-forward ratio</th></tr>
+        </thead>
+        <tbody><tr><td>537db26f</td><td>537db26f-50c3-7350-1a28-dfdf1a349f66</td><td>no</td><td>12,492,928</td><td>50,715</td><td>31</td><td>0</td><td>226</td><td>1016</td><td>0</td><td>98.9%</td></tr><tr><td>9c186814</td><td>9c186814-4042-2cc0-eda3-a408457ebb56</td><td>no</td><td>956,814</td><td>9,994</td><td>9</td><td>2</td><td>48</td><td>351</td><td>0</td><td>96.8%</td></tr><tr><td>39f38cb4</td><td>39f38cb4-a374-3834-7153-8d1443d04822</td><td>yes</td><td>8,517,025</td><td>23,694</td><td>16</td><td>0</td><td>48</td><td>2725</td><td>1</td><td>98.8%</td></tr><tr><td>67ade002</td><td>67ade002-afff-460d-8851-6e17c5b0103c</td><td>no</td><td>15,963,510</td><td>59,113</td><td>16</td><td>17</td><td>132</td><td>2546</td><td>0</td><td>99.1%</td></tr></tbody>
+      </table>
+    </section>
+    <section class="panel">
+      <h2>Metric glossary</h2>
+      <p>Definitions for the comparison charts and table metrics.</p>
+      <div class="glossary-row"><div class="glossary-term">Action mix</div><div class="glossary-text">Normalized share of classified events within a run. The top chart includes internal runtime work; the second chart removes overhead so visible coding behavior is easier to compare.</div></div><div class="glossary-row"><div class="glossary-term">Overhead</div><div class="glossary-text">Internal harness/runtime work rather than direct repo work. In these traces it is mostly LocalFileStore persistence activity, split into persistence lookups and writes when possible.</div></div><div class="glossary-row"><div class="glossary-term">Files before first edit</div><div class="glossary-text">Distinct files explicitly read before the first edit step. Lower is usually better, because it means the run searched less before committing to an edit.</div></div><div class="glossary-row"><div class="glossary-term">Edits before first pass</div><div class="glossary-text">Number of edit steps before the first passing test. Lower is usually better; a low search count with many edits suggests the run committed quickly but not cleanly.</div></div><div class="glossary-row"><div class="glossary-term">Tests before first pass</div><div class="glossary-text">Tests consumed before the first passing signal. For failed runs, this falls back to total tests run before the trace ended. Lower is usually better.</div></div><div class="glossary-row"><div class="glossary-term">Tests after first pass</div><div class="glossary-text">Additional tests run after the first passing signal. Lower is better, because it suggests less verification churn after the patch was already plausible.</div></div><div class="glossary-row"><div class="glossary-term">Max retry burst</div><div class="glossary-text">Longest consecutive burst of explicit retry or wait steps. Lower is usually better.</div></div><div class="glossary-row"><div class="glossary-term">Carry-forward ratio</div><div class="glossary-text">Share of attributed prompt tokens coming from replayed context plus cached prefix tokens. Higher values mean more prior state is being carried forward into each LLM call.</div></div>
+    </section>
+  </div>
+  <script>
+    const comparisonData = {
+  "runs": [
+    {
+      "label": "537db26f",
+      "run_id": "537db26f-50c3-7350-1a28-dfdf1a349f66",
+      "success": false,
+      "success_num": 0,
+      "total_steps": 1027,
+      "total_duration_ms": 5931218,
+      "total_input_tokens": 12492928,
+      "total_output_tokens": 50715,
+      "total_cached_tokens": 12314444,
+      "total_tests_run": 1242,
+      "tests_passed": 917,
+      "tests_failed": 295,
+      "cache_ratio": 0.4964026016137461,
+      "carry_forward_ratio": 0.9889301371143738,
+      "memory_inefficiency_ratio": 0.9889301371143738,
+      "wait_time_ratio": 0.0,
+      "dominant_action": "overhead",
+      "llm_steps": 126,
+      "unique_files": [
+        "*.py",
+        "/workspace/simpy",
+        "/workspace/simpy/pyproject.toml",
+        "/workspace/simpy/src/simpy",
+        "/workspace/simpy/src/simpy/__init__.py",
+        "/workspace/simpy/src/simpy/core.py",
+        "/workspace/simpy/src/simpy/events.py",
+        "/workspace/simpy/src/simpy/exceptions.py",
+        "/workspace/simpy/src/simpy/resources/base.py",
+        "/workspace/simpy/src/simpy/resources/container.py",
+        "/workspace/simpy/src/simpy/resources/resource.py",
+        "/workspace/simpy/src/simpy/resources/store.py",
+        "/workspace/simpy/src/simpy/rt.py",
+        "/workspace/simpy/src/simpy/util.py",
+        "/workspace/simpy/tests/conftest.py",
+        "/workspace/simpy/tests/test_condition.py",
+        "/workspace/simpy/tests/test_environment.py",
+        "/workspace/simpy/tests/test_event.py",
+        "/workspace/simpy/tests/test_exceptions.py",
+        "/workspace/simpy/tests/test_interrupts.py",
+        "/workspace/simpy/tests/test_process.py",
+        "/workspace/simpy/tests/test_resources.py",
+        "/workspace/simpy/tests/test_rt.py",
+        "/workspace/simpy/tests/test_util.py",
+        "exceptions.py",
+        "simpy/core.py",
+        "simpy/events.py",
+        "simpy/exceptions.py",
+        "simpy/resources/base.py",
+        "simpy/resources/container.py",
+        "simpy/resources/resource.py",
+        "simpy/resources/store.py",
+        "simpy/rt.py",
+        "simpy/util.py",
+        "tests/test_environment.py",
+        "tests/test_exceptions.py",
+        "tests/test_interrupts.py",
+        "tests/test_rt.py"
+      ],
+      "unique_files_count": 38,
+      "action_counts": {
+        "plan": 255,
+        "execute": 155,
+        "overhead": 516,
+        "inspect": 42,
+        "edit": 52,
+        "finalize": 7
+      },
+      "action_shares": {
+        "plan": 0.24829600778967867,
+        "execute": 0.15092502434274585,
+        "overhead": 0.5024342745861733,
+        "inspect": 0.04089581304771178,
+        "edit": 0.05063291139240506,
+        "finalize": 0.006815968841285297
+      },
+      "visible_action_counts": {
+        "plan": 255,
+        "execute": 155,
+        "inspect": 42,
+        "edit": 52,
+        "finalize": 7
+      },
+      "visible_action_shares": {
+        "plan": 0.49902152641878667,
+        "execute": 0.30332681017612523,
+        "inspect": 0.0821917808219178,
+        "edit": 0.10176125244618395,
+        "finalize": 0.0136986301369863
+      },
+      "overhead_counts": {
+        "persistence_lookup": 257,
+        "persistence_write": 259
+      },
+      "step_of_first_edit": 214,
+      "step_of_first_pass": 46,
+      "files_read_before_first_edit": [
+        "*.py",
+        "/workspace/simpy",
+        "/workspace/simpy/src/simpy",
+        "/workspace/simpy/src/simpy/__init__.py",
+        "/workspace/simpy/src/simpy/core.py",
+        "/workspace/simpy/src/simpy/events.py",
+        "/workspace/simpy/src/simpy/exceptions.py",
+        "/workspace/simpy/src/simpy/resources/base.py",
+        "/workspace/simpy/src/simpy/resources/container.py",
+        "/workspace/simpy/src/simpy/resources/resource.py",
+        "/workspace/simpy/src/simpy/resources/store.py",
+        "/workspace/simpy/src/simpy/rt.py",
+        "/workspace/simpy/src/simpy/util.py",
+        "/workspace/simpy/tests/conftest.py",
+        "/workspace/simpy/tests/test_condition.py",
+        "/workspace/simpy/tests/test_environment.py",
+        "/workspace/simpy/tests/test_event.py",
+        "/workspace/simpy/tests/test_interrupts.py",
+        "/workspace/simpy/tests/test_process.py",
+        "/workspace/simpy/tests/test_resources.py",
+        "/workspace/simpy/tests/test_rt.py",
+        "/workspace/simpy/tests/test_util.py",
+        "simpy/core.py",
+        "simpy/events.py",
+        "simpy/exceptions.py",
+        "simpy/resources/base.py",
+        "simpy/resources/container.py",
+        "simpy/resources/resource.py",
+        "simpy/resources/store.py",
+        "simpy/rt.py",
+        "simpy/util.py"
+      ],
+      "files_read_before_first_edit_count": 31,
+      "edits_before_first_pass": 0,
+      "tests_before_first_pass": 226,
+      "tests_after_first_pass": 1016,
+      "max_retry_burst": 0,
+      "retry_density": 0.0,
+      "top_files": [
+        {
+          "label": "/workspace/simpy",
+          "count": 68
+        },
+        {
+          "label": "/workspace/simpy/src/simpy/events.py",
+          "count": 60
+        },
+        {
+          "label": "/workspace/simpy/src/simpy/core.py",
+          "count": 16
+        },
+        {
+          "label": "/workspace/simpy/src/simpy/rt.py",
+          "count": 14
+        }
+      ],
+      "top_modules": [
+        {
+          "label": "workspace",
+          "count": 23
+        },
+        {
+          "label": "simpy",
+          "count": 9
+        },
+        {
+          "label": "*.py",
+          "count": 1
+        },
+        {
+          "label": "exceptions.py",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "label": "9c186814",
+      "run_id": "9c186814-4042-2cc0-eda3-a408457ebb56",
+      "success": false,
+      "success_num": 0,
+      "total_steps": 267,
+      "total_duration_ms": 1409722,
+      "total_input_tokens": 956814,
+      "total_output_tokens": 9994,
+      "total_cached_tokens": 914304,
+      "total_tests_run": 399,
+      "tests_passed": 387,
+      "tests_failed": 1,
+      "cache_ratio": 0.48864048125238496,
+      "carry_forward_ratio": 0.9681808585576716,
+      "memory_inefficiency_ratio": 0.9681808585576716,
+      "wait_time_ratio": 0.0,
+      "dominant_action": "overhead",
+      "llm_steps": 31,
+      "unique_files": [
+        "/workspace/deprecated",
+        "/workspace/deprecated/deprecated",
+        "/workspace/deprecated/deprecated/__init__.py",
+        "/workspace/deprecated/deprecated/classic.py",
+        "/workspace/deprecated/deprecated/sphinx.py",
+        "/workspace/deprecated/tests/test_deprecated.py",
+        "/workspace/deprecated/tests/test_deprecated_class.py",
+        "/workspace/deprecated/tests/test_sphinx.py",
+        "/workspace/deprecated/tests/test_sphinx_adapter.py",
+        "classic.py",
+        "sphinx.py",
+        "tests/test_deprecated.py",
+        "tests/test_sphinx.py"
+      ],
+      "unique_files_count": 13,
+      "action_counts": {
+        "plan": 66,
+        "execute": 41,
+        "overhead": 136,
+        "inspect": 14,
+        "edit": 8,
+        "finalize": 2
+      },
+      "action_shares": {
+        "plan": 0.24719101123595505,
+        "execute": 0.15355805243445692,
+        "overhead": 0.5093632958801498,
+        "inspect": 0.052434456928838954,
+        "edit": 0.0299625468164794,
+        "finalize": 0.00749063670411985
+      },
+      "visible_action_counts": {
+        "plan": 66,
+        "execute": 41,
+        "inspect": 14,
+        "edit": 8,
+        "finalize": 2
+      },
+      "visible_action_shares": {
+        "plan": 0.5038167938931297,
+        "execute": 0.31297709923664124,
+        "inspect": 0.10687022900763359,
+        "edit": 0.061068702290076333,
+        "finalize": 0.015267175572519083
+      },
+      "overhead_counts": {
+        "persistence_lookup": 67,
+        "persistence_write": 69
+      },
+      "step_of_first_edit": 150,
+      "step_of_first_pass": 166,
+      "files_read_before_first_edit": [
+        "/workspace/deprecated",
+        "/workspace/deprecated/deprecated",
+        "/workspace/deprecated/deprecated/__init__.py",
+        "/workspace/deprecated/deprecated/classic.py",
+        "/workspace/deprecated/deprecated/sphinx.py",
+        "/workspace/deprecated/tests/test_deprecated.py",
+        "/workspace/deprecated/tests/test_deprecated_class.py",
+        "/workspace/deprecated/tests/test_sphinx.py",
+        "/workspace/deprecated/tests/test_sphinx_adapter.py"
+      ],
+      "files_read_before_first_edit_count": 9,
+      "edits_before_first_pass": 2,
+      "tests_before_first_pass": 48,
+      "tests_after_first_pass": 351,
+      "max_retry_burst": 0,
+      "retry_density": 0.0,
+      "top_files": [
+        {
+          "label": "/workspace/deprecated",
+          "count": 28
+        },
+        {
+          "label": "/workspace/deprecated/deprecated/sphinx.py",
+          "count": 12
+        },
+        {
+          "label": "/workspace/deprecated/deprecated/classic.py",
+          "count": 6
+        },
+        {
+          "label": "tests/test_deprecated.py",
+          "count": 6
+        }
+      ],
+      "top_modules": [
+        {
+          "label": "workspace",
+          "count": 9
+        },
+        {
+          "label": "tests/test_deprecated.py",
+          "count": 1
+        },
+        {
+          "label": "classic.py",
+          "count": 1
+        },
+        {
+          "label": "tests/test_sphinx.py",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "label": "39f38cb4",
+      "run_id": "39f38cb4-a374-3834-7153-8d1443d04822",
+      "success": true,
+      "success_num": 1,
+      "total_steps": 843,
+      "total_duration_ms": 3337504,
+      "total_input_tokens": 8517025,
+      "total_output_tokens": 23694,
+      "total_cached_tokens": 8399258,
+      "total_tests_run": 2773,
+      "tests_passed": 2602,
+      "tests_failed": 0,
+      "cache_ratio": 0.4965191230248394,
+      "carry_forward_ratio": 0.9884328154490565,
+      "memory_inefficiency_ratio": 0.9884328154490565,
+      "wait_time_ratio": 0.00018606719272845816,
+      "dominant_action": "overhead",
+      "llm_steps": 103,
+      "unique_files": [
+        "*.py",
+        "/home/openhands/.local/lib/python3.10/site-packages",
+        "/home/openhands/.local/lib/python3.10/site-packages/jinja2/nodes.py",
+        "/tmp/jinja2_download",
+        "/tmp/jinja2_download/extracted/jinja2/$f",
+        "/tmp/jinja2_download/extracted/jinja2/async_utils.py",
+        "/tmp/jinja2_download/extracted/jinja2/compiler.py",
+        "/tmp/jinja2_download/extracted/jinja2/filters.py",
+        "/tmp/jinja2_download/extracted/jinja2/idtracking.py",
+        "/tmp/jinja2_download/extracted/jinja2/lexer.py",
+        "/tmp/jinja2_download/extracted/jinja2/runtime.py",
+        "/usr/bin/python",
+        "/workspace/jinja",
+        "/workspace/jinja/src/jinja2",
+        "/workspace/jinja/src/jinja2/bccache.py",
+        "/workspace/jinja/src/jinja2/ext.py",
+        "/workspace/jinja/src/jinja2/filters.py",
+        "/workspace/jinja/src/jinja2/idtracking.py",
+        "/workspace/jinja/src/jinja2/meta.py",
+        "/workspace/jinja/src/jinja2/nodes.py",
+        "/workspace/jinja/src/jinja2/runtime.py",
+        "/workspace/jinja/src/jinja2/sandbox.py",
+        "/workspace/jinja/src/jinja2/tests.py",
+        "/workspace/jinja/src/jinja2/utils.py",
+        "/workspace/jinja/src/jinja2/visitor.py",
+        "/workspace/jinja/tests/test_utils.py",
+        "_identifier.py",
+        "async_utils.py",
+        "bccache.py",
+        "compiler.py",
+        "constants.py",
+        "debug.py",
+        "defaults.py",
+        "environment.py",
+        "exceptions.py",
+        "ext.py",
+        "extracted/jinja2/*.py",
+        "extracted/jinja2/compiler.py",
+        "extracted/jinja2/idtracking.py",
+        "extracted/jinja2/nodes.py",
+        "extracted/jinja2/utils.py",
+        "filters.py",
+        "idtracking.py",
+        "lexer.py",
+        "loaders.py",
+        "meta.py",
+        "nativetypes.py",
+        "nodes.py",
+        "optimizer.py",
+        "parser.py",
+        "runtime.py",
+        "sandbox.py",
+        "src/jinja2/*.py",
+        "src/jinja2/async_utils.py",
+        "src/jinja2/compiler.py",
+        "src/jinja2/filters.py",
+        "src/jinja2/idtracking.py",
+        "src/jinja2/lexer.py",
+        "src/jinja2/nodes.py",
+        "src/jinja2/runtime.py",
+        "tests.py",
+        "utils.py",
+        "visitor.py"
+      ],
+      "unique_files_count": 63,
+      "action_counts": {
+        "plan": 203,
+        "execute": 110,
+        "overhead": 424,
+        "inspect": 64,
+        "edit": 31,
+        "finalize": 10,
+        "wait": 1
+      },
+      "action_shares": {
+        "plan": 0.24080664294187426,
+        "execute": 0.13048635824436536,
+        "overhead": 0.5029655990510083,
+        "inspect": 0.07591933570581258,
+        "edit": 0.036773428232502965,
+        "finalize": 0.011862396204033215,
+        "wait": 0.0011862396204033216
+      },
+      "visible_action_counts": {
+        "plan": 203,
+        "execute": 110,
+        "inspect": 64,
+        "edit": 31,
+        "finalize": 10,
+        "wait": 1
+      },
+      "visible_action_shares": {
+        "plan": 0.48448687350835323,
+        "execute": 0.26252983293556087,
+        "inspect": 0.15274463007159905,
+        "edit": 0.07398568019093078,
+        "finalize": 0.02386634844868735,
+        "wait": 0.002386634844868735
+      },
+      "overhead_counts": {
+        "persistence_lookup": 211,
+        "persistence_write": 213
+      },
+      "step_of_first_edit": 198,
+      "step_of_first_pass": 110,
+      "files_read_before_first_edit": [
+        "*.py",
+        "/workspace/jinja",
+        "/workspace/jinja/src/jinja2",
+        "/workspace/jinja/src/jinja2/bccache.py",
+        "/workspace/jinja/src/jinja2/ext.py",
+        "/workspace/jinja/src/jinja2/filters.py",
+        "/workspace/jinja/src/jinja2/meta.py",
+        "/workspace/jinja/src/jinja2/nodes.py",
+        "/workspace/jinja/src/jinja2/runtime.py",
+        "/workspace/jinja/src/jinja2/sandbox.py",
+        "/workspace/jinja/src/jinja2/tests.py",
+        "/workspace/jinja/src/jinja2/utils.py",
+        "/workspace/jinja/src/jinja2/visitor.py",
+        "/workspace/jinja/tests/test_utils.py",
+        "src/jinja2/filters.py",
+        "src/jinja2/runtime.py"
+      ],
+      "files_read_before_first_edit_count": 16,
+      "edits_before_first_pass": 0,
+      "tests_before_first_pass": 48,
+      "tests_after_first_pass": 2725,
+      "max_retry_burst": 1,
+      "retry_density": 0.0,
+      "top_files": [
+        {
+          "label": "/workspace/jinja",
+          "count": 71
+        },
+        {
+          "label": "/workspace/jinja/src/jinja2/utils.py",
+          "count": 52
+        },
+        {
+          "label": "/tmp/jinja2_download",
+          "count": 26
+        },
+        {
+          "label": "/workspace/jinja/src/jinja2/nodes.py",
+          "count": 12
+        }
+      ],
+      "top_modules": [
+        {
+          "label": "workspace",
+          "count": 14
+        },
+        {
+          "label": "src/jinja2",
+          "count": 8
+        },
+        {
+          "label": "tmp",
+          "count": 8
+        },
+        {
+          "label": "extracted",
+          "count": 5
+        }
+      ]
+    },
+    {
+      "label": "67ade002",
+      "run_id": "67ade002-afff-460d-8851-6e17c5b0103c",
+      "success": false,
+      "success_num": 0,
+      "total_steps": 1077,
+      "total_duration_ms": 6700825,
+      "total_input_tokens": 15963510,
+      "total_output_tokens": 59113,
+      "total_cached_tokens": 15768170,
+      "total_tests_run": 2678,
+      "tests_passed": 2482,
+      "tests_failed": 129,
+      "cache_ratio": 0.49692200349934196,
+      "carry_forward_ratio": 0.9914815726616515,
+      "memory_inefficiency_ratio": 0.9914815726616515,
+      "wait_time_ratio": 0.0,
+      "dominant_action": "overhead",
+      "llm_steps": 127,
+      "unique_files": [
+        "*.py",
+        "/usr/bin/python",
+        "/workspace/pyjwt",
+        "/workspace/pyjwt/jwt",
+        "/workspace/pyjwt/jwt/algorithms.py",
+        "/workspace/pyjwt/jwt/api_jwk.py",
+        "/workspace/pyjwt/jwt/api_jws.py",
+        "/workspace/pyjwt/jwt/api_jwt.py",
+        "/workspace/pyjwt/jwt/exceptions.py",
+        "/workspace/pyjwt/jwt/help.py",
+        "/workspace/pyjwt/jwt/jwk_set_cache.py",
+        "/workspace/pyjwt/jwt/jwks_client.py",
+        "/workspace/pyjwt/jwt/types.py",
+        "/workspace/pyjwt/jwt/utils.py",
+        "/workspace/pyjwt/jwt/warnings.py",
+        "/workspace/pyjwt/pyproject.toml",
+        "/workspace/pyjwt/tests/test_algorithms.py",
+        "/workspace/pyjwt/tests/test_api_jws.py",
+        "/workspace/pyjwt/tests/test_api_jwt.py",
+        "/workspace/pyjwt/tests/test_utils.py",
+        "/workspace/pyjwt/tests/utils.py",
+        "jwt/*.py",
+        "jwt/algorithms.py",
+        "jwt/api_jwk.py",
+        "jwt/api_jws.py",
+        "jwt/api_jwt.py",
+        "jwt/exceptions.py",
+        "jwt/help.py",
+        "jwt/jwk_set_cache.py",
+        "jwt/jwks_client.py",
+        "jwt/utils.py",
+        "jwt/warnings.py",
+        "tests/keys/jwk_rsa_key.json",
+        "tests/test_algorithms.py",
+        "tests/test_api_jws.py",
+        "tests/test_api_jwt.py",
+        "tests/test_jwks_client.py"
+      ],
+      "unique_files_count": 37,
+      "action_counts": {
+        "plan": 245,
+        "execute": 182,
+        "overhead": 548,
+        "inspect": 46,
+        "edit": 40,
+        "finalize": 16
+      },
+      "action_shares": {
+        "plan": 0.22748375116063138,
+        "execute": 0.16898792943361188,
+        "overhead": 0.5088207985143919,
+        "inspect": 0.04271123491179202,
+        "edit": 0.03714020427112349,
+        "finalize": 0.014856081708449397
+      },
+      "visible_action_counts": {
+        "plan": 245,
+        "execute": 182,
+        "inspect": 46,
+        "edit": 40,
+        "finalize": 16
+      },
+      "visible_action_shares": {
+        "plan": 0.46313799621928164,
+        "execute": 0.3440453686200378,
+        "inspect": 0.08695652173913043,
+        "edit": 0.07561436672967864,
+        "finalize": 0.030245746691871456
+      },
+      "overhead_counts": {
+        "persistence_lookup": 273,
+        "persistence_write": 275
+      },
+      "step_of_first_edit": 152,
+      "step_of_first_pass": 536,
+      "files_read_before_first_edit": [
+        "*.py",
+        "/workspace/pyjwt",
+        "/workspace/pyjwt/jwt",
+        "/workspace/pyjwt/jwt/algorithms.py",
+        "/workspace/pyjwt/jwt/api_jws.py",
+        "/workspace/pyjwt/jwt/api_jwt.py",
+        "/workspace/pyjwt/jwt/exceptions.py",
+        "/workspace/pyjwt/jwt/help.py",
+        "/workspace/pyjwt/jwt/utils.py",
+        "/workspace/pyjwt/jwt/warnings.py",
+        "/workspace/pyjwt/pyproject.toml",
+        "/workspace/pyjwt/tests/test_algorithms.py",
+        "/workspace/pyjwt/tests/test_api_jws.py",
+        "/workspace/pyjwt/tests/test_api_jwt.py",
+        "/workspace/pyjwt/tests/test_utils.py",
+        "/workspace/pyjwt/tests/utils.py"
+      ],
+      "files_read_before_first_edit_count": 16,
+      "edits_before_first_pass": 17,
+      "tests_before_first_pass": 132,
+      "tests_after_first_pass": 2546,
+      "max_retry_burst": 0,
+      "retry_density": 0.0,
+      "top_files": [
+        {
+          "label": "/workspace/pyjwt",
+          "count": 113
+        },
+        {
+          "label": "/workspace/pyjwt/jwt/algorithms.py",
+          "count": 50
+        },
+        {
+          "label": "/workspace/pyjwt/jwt/api_jwt.py",
+          "count": 29
+        },
+        {
+          "label": "tests/test_algorithms.py",
+          "count": 18
+        }
+      ],
+      "top_modules": [
+        {
+          "label": "workspace",
+          "count": 19
+        },
+        {
+          "label": "jwt",
+          "count": 11
+        },
+        {
+          "label": "*.py",
+          "count": 1
+        },
+        {
+          "label": "tests/test_algorithms.py",
+          "count": 1
+        }
+      ]
+    }
+  ],
+  "action_breakdown": [
+    {
+      "label": "537db26f",
+      "run_id": "537db26f-50c3-7350-1a28-dfdf1a349f66",
+      "action": "edit",
+      "count": 52,
+      "share": 0.05063291139240506
+    },
+    {
+      "label": "537db26f",
+      "run_id": "537db26f-50c3-7350-1a28-dfdf1a349f66",
+      "action": "execute",
+      "count": 155,
+      "share": 0.15092502434274585
+    },
+    {
+      "label": "537db26f",
+      "run_id": "537db26f-50c3-7350-1a28-dfdf1a349f66",
+      "action": "finalize",
+      "count": 7,
+      "share": 0.006815968841285297
+    },
+    {
+      "label": "537db26f",
+      "run_id": "537db26f-50c3-7350-1a28-dfdf1a349f66",
+      "action": "inspect",
+      "count": 42,
+      "share": 0.04089581304771178
+    },
+    {
+      "label": "537db26f",
+      "run_id": "537db26f-50c3-7350-1a28-dfdf1a349f66",
+      "action": "overhead",
+      "count": 516,
+      "share": 0.5024342745861733
+    },
+    {
+      "label": "537db26f",
+      "run_id": "537db26f-50c3-7350-1a28-dfdf1a349f66",
+      "action": "plan",
+      "count": 255,
+      "share": 0.24829600778967867
+    },
+    {
+      "label": "537db26f",
+      "run_id": "537db26f-50c3-7350-1a28-dfdf1a349f66",
+      "action": "wait",
+      "count": 0,
+      "share": 0.0
+    },
+    {
+      "label": "9c186814",
+      "run_id": "9c186814-4042-2cc0-eda3-a408457ebb56",
+      "action": "edit",
+      "count": 8,
+      "share": 0.0299625468164794
+    },
+    {
+      "label": "9c186814",
+      "run_id": "9c186814-4042-2cc0-eda3-a408457ebb56",
+      "action": "execute",
+      "count": 41,
+      "share": 0.15355805243445692
+    },
+    {
+      "label": "9c186814",
+      "run_id": "9c186814-4042-2cc0-eda3-a408457ebb56",
+      "action": "finalize",
+      "count": 2,
+      "share": 0.00749063670411985
+    },
+    {
+      "label": "9c186814",
+      "run_id": "9c186814-4042-2cc0-eda3-a408457ebb56",
+      "action": "inspect",
+      "count": 14,
+      "share": 0.052434456928838954
+    },
+    {
+      "label": "9c186814",
+      "run_id": "9c186814-4042-2cc0-eda3-a408457ebb56",
+      "action": "overhead",
+      "count": 136,
+      "share": 0.5093632958801498
+    },
+    {
+      "label": "9c186814",
+      "run_id": "9c186814-4042-2cc0-eda3-a408457ebb56",
+      "action": "plan",
+      "count": 66,
+      "share": 0.24719101123595505
+    },
+    {
+      "label": "9c186814",
+      "run_id": "9c186814-4042-2cc0-eda3-a408457ebb56",
+      "action": "wait",
+      "count": 0,
+      "share": 0.0
+    },
+    {
+      "label": "39f38cb4",
+      "run_id": "39f38cb4-a374-3834-7153-8d1443d04822",
+      "action": "edit",
+      "count": 31,
+      "share": 0.036773428232502965
+    },
+    {
+      "label": "39f38cb4",
+      "run_id": "39f38cb4-a374-3834-7153-8d1443d04822",
+      "action": "execute",
+      "count": 110,
+      "share": 0.13048635824436536
+    },
+    {
+      "label": "39f38cb4",
+      "run_id": "39f38cb4-a374-3834-7153-8d1443d04822",
+      "action": "finalize",
+      "count": 10,
+      "share": 0.011862396204033215
+    },
+    {
+      "label": "39f38cb4",
+      "run_id": "39f38cb4-a374-3834-7153-8d1443d04822",
+      "action": "inspect",
+      "count": 64,
+      "share": 0.07591933570581258
+    },
+    {
+      "label": "39f38cb4",
+      "run_id": "39f38cb4-a374-3834-7153-8d1443d04822",
+      "action": "overhead",
+      "count": 424,
+      "share": 0.5029655990510083
+    },
+    {
+      "label": "39f38cb4",
+      "run_id": "39f38cb4-a374-3834-7153-8d1443d04822",
+      "action": "plan",
+      "count": 203,
+      "share": 0.24080664294187426
+    },
+    {
+      "label": "39f38cb4",
+      "run_id": "39f38cb4-a374-3834-7153-8d1443d04822",
+      "action": "wait",
+      "count": 1,
+      "share": 0.0011862396204033216
+    },
+    {
+      "label": "67ade002",
+      "run_id": "67ade002-afff-460d-8851-6e17c5b0103c",
+      "action": "edit",
+      "count": 40,
+      "share": 0.03714020427112349
+    },
+    {
+      "label": "67ade002",
+      "run_id": "67ade002-afff-460d-8851-6e17c5b0103c",
+      "action": "execute",
+      "count": 182,
+      "share": 0.16898792943361188
+    },
+    {
+      "label": "67ade002",
+      "run_id": "67ade002-afff-460d-8851-6e17c5b0103c",
+      "action": "finalize",
+      "count": 16,
+      "share": 0.014856081708449397
+    },
+    {
+      "label": "67ade002",
+      "run_id": "67ade002-afff-460d-8851-6e17c5b0103c",
+      "action": "inspect",
+      "count": 46,
+      "share": 0.04271123491179202
+    },
+    {
+      "label": "67ade002",
+      "run_id": "67ade002-afff-460d-8851-6e17c5b0103c",
+      "action": "overhead",
+      "count": 548,
+      "share": 0.5088207985143919
+    },
+    {
+      "label": "67ade002",
+      "run_id": "67ade002-afff-460d-8851-6e17c5b0103c",
+      "action": "plan",
+      "count": 245,
+      "share": 0.22748375116063138
+    },
+    {
+      "label": "67ade002",
+      "run_id": "67ade002-afff-460d-8851-6e17c5b0103c",
+      "action": "wait",
+      "count": 0,
+      "share": 0.0
+    }
+  ],
+  "visible_action_breakdown": [
+    {
+      "label": "537db26f",
+      "run_id": "537db26f-50c3-7350-1a28-dfdf1a349f66",
+      "action": "edit",
+      "count": 52,
+      "share": 0.10176125244618395
+    },
+    {
+      "label": "537db26f",
+      "run_id": "537db26f-50c3-7350-1a28-dfdf1a349f66",
+      "action": "execute",
+      "count": 155,
+      "share": 0.30332681017612523
+    },
+    {
+      "label": "537db26f",
+      "run_id": "537db26f-50c3-7350-1a28-dfdf1a349f66",
+      "action": "finalize",
+      "count": 7,
+      "share": 0.0136986301369863
+    },
+    {
+      "label": "537db26f",
+      "run_id": "537db26f-50c3-7350-1a28-dfdf1a349f66",
+      "action": "inspect",
+      "count": 42,
+      "share": 0.0821917808219178
+    },
+    {
+      "label": "537db26f",
+      "run_id": "537db26f-50c3-7350-1a28-dfdf1a349f66",
+      "action": "plan",
+      "count": 255,
+      "share": 0.49902152641878667
+    },
+    {
+      "label": "537db26f",
+      "run_id": "537db26f-50c3-7350-1a28-dfdf1a349f66",
+      "action": "wait",
+      "count": 0,
+      "share": 0.0
+    },
+    {
+      "label": "9c186814",
+      "run_id": "9c186814-4042-2cc0-eda3-a408457ebb56",
+      "action": "edit",
+      "count": 8,
+      "share": 0.061068702290076333
+    },
+    {
+      "label": "9c186814",
+      "run_id": "9c186814-4042-2cc0-eda3-a408457ebb56",
+      "action": "execute",
+      "count": 41,
+      "share": 0.31297709923664124
+    },
+    {
+      "label": "9c186814",
+      "run_id": "9c186814-4042-2cc0-eda3-a408457ebb56",
+      "action": "finalize",
+      "count": 2,
+      "share": 0.015267175572519083
+    },
+    {
+      "label": "9c186814",
+      "run_id": "9c186814-4042-2cc0-eda3-a408457ebb56",
+      "action": "inspect",
+      "count": 14,
+      "share": 0.10687022900763359
+    },
+    {
+      "label": "9c186814",
+      "run_id": "9c186814-4042-2cc0-eda3-a408457ebb56",
+      "action": "plan",
+      "count": 66,
+      "share": 0.5038167938931297
+    },
+    {
+      "label": "9c186814",
+      "run_id": "9c186814-4042-2cc0-eda3-a408457ebb56",
+      "action": "wait",
+      "count": 0,
+      "share": 0.0
+    },
+    {
+      "label": "39f38cb4",
+      "run_id": "39f38cb4-a374-3834-7153-8d1443d04822",
+      "action": "edit",
+      "count": 31,
+      "share": 0.07398568019093078
+    },
+    {
+      "label": "39f38cb4",
+      "run_id": "39f38cb4-a374-3834-7153-8d1443d04822",
+      "action": "execute",
+      "count": 110,
+      "share": 0.26252983293556087
+    },
+    {
+      "label": "39f38cb4",
+      "run_id": "39f38cb4-a374-3834-7153-8d1443d04822",
+      "action": "finalize",
+      "count": 10,
+      "share": 0.02386634844868735
+    },
+    {
+      "label": "39f38cb4",
+      "run_id": "39f38cb4-a374-3834-7153-8d1443d04822",
+      "action": "inspect",
+      "count": 64,
+      "share": 0.15274463007159905
+    },
+    {
+      "label": "39f38cb4",
+      "run_id": "39f38cb4-a374-3834-7153-8d1443d04822",
+      "action": "plan",
+      "count": 203,
+      "share": 0.48448687350835323
+    },
+    {
+      "label": "39f38cb4",
+      "run_id": "39f38cb4-a374-3834-7153-8d1443d04822",
+      "action": "wait",
+      "count": 1,
+      "share": 0.002386634844868735
+    },
+    {
+      "label": "67ade002",
+      "run_id": "67ade002-afff-460d-8851-6e17c5b0103c",
+      "action": "edit",
+      "count": 40,
+      "share": 0.07561436672967864
+    },
+    {
+      "label": "67ade002",
+      "run_id": "67ade002-afff-460d-8851-6e17c5b0103c",
+      "action": "execute",
+      "count": 182,
+      "share": 0.3440453686200378
+    },
+    {
+      "label": "67ade002",
+      "run_id": "67ade002-afff-460d-8851-6e17c5b0103c",
+      "action": "finalize",
+      "count": 16,
+      "share": 0.030245746691871456
+    },
+    {
+      "label": "67ade002",
+      "run_id": "67ade002-afff-460d-8851-6e17c5b0103c",
+      "action": "inspect",
+      "count": 46,
+      "share": 0.08695652173913043
+    },
+    {
+      "label": "67ade002",
+      "run_id": "67ade002-afff-460d-8851-6e17c5b0103c",
+      "action": "plan",
+      "count": 245,
+      "share": 0.46313799621928164
+    },
+    {
+      "label": "67ade002",
+      "run_id": "67ade002-afff-460d-8851-6e17c5b0103c",
+      "action": "wait",
+      "count": 0,
+      "share": 0.0
+    }
+  ],
+  "overhead_breakdown": [
+    {
+      "label": "537db26f",
+      "run_id": "537db26f-50c3-7350-1a28-dfdf1a349f66",
+      "action": "persistence_lookup",
+      "count": 257,
+      "share": 0.49806201550387597
+    },
+    {
+      "label": "537db26f",
+      "run_id": "537db26f-50c3-7350-1a28-dfdf1a349f66",
+      "action": "persistence_write",
+      "count": 259,
+      "share": 0.501937984496124
+    },
+    {
+      "label": "9c186814",
+      "run_id": "9c186814-4042-2cc0-eda3-a408457ebb56",
+      "action": "persistence_lookup",
+      "count": 67,
+      "share": 0.49264705882352944
+    },
+    {
+      "label": "9c186814",
+      "run_id": "9c186814-4042-2cc0-eda3-a408457ebb56",
+      "action": "persistence_write",
+      "count": 69,
+      "share": 0.5073529411764706
+    },
+    {
+      "label": "39f38cb4",
+      "run_id": "39f38cb4-a374-3834-7153-8d1443d04822",
+      "action": "persistence_lookup",
+      "count": 211,
+      "share": 0.49764150943396224
+    },
+    {
+      "label": "39f38cb4",
+      "run_id": "39f38cb4-a374-3834-7153-8d1443d04822",
+      "action": "persistence_write",
+      "count": 213,
+      "share": 0.5023584905660378
+    },
+    {
+      "label": "67ade002",
+      "run_id": "67ade002-afff-460d-8851-6e17c5b0103c",
+      "action": "persistence_lookup",
+      "count": 273,
+      "share": 0.4981751824817518
+    },
+    {
+      "label": "67ade002",
+      "run_id": "67ade002-afff-460d-8851-6e17c5b0103c",
+      "action": "persistence_write",
+      "count": 275,
+      "share": 0.5018248175182481
+    }
+  ],
+  "burden_breakdown": [
+    {
+      "label": "537db26f",
+      "metric": "files_before_first_edit",
+      "value": 31
+    },
+    {
+      "label": "9c186814",
+      "metric": "files_before_first_edit",
+      "value": 9
+    },
+    {
+      "label": "39f38cb4",
+      "metric": "files_before_first_edit",
+      "value": 16
+    },
+    {
+      "label": "67ade002",
+      "metric": "files_before_first_edit",
+      "value": 16
+    },
+    {
+      "label": "537db26f",
+      "metric": "edits_before_first_pass",
+      "value": 0
+    },
+    {
+      "label": "9c186814",
+      "metric": "edits_before_first_pass",
+      "value": 2
+    },
+    {
+      "label": "39f38cb4",
+      "metric": "edits_before_first_pass",
+      "value": 0
+    },
+    {
+      "label": "67ade002",
+      "metric": "edits_before_first_pass",
+      "value": 17
+    },
+    {
+      "label": "537db26f",
+      "metric": "tests_before_first_pass",
+      "value": 226
+    },
+    {
+      "label": "9c186814",
+      "metric": "tests_before_first_pass",
+      "value": 48
+    },
+    {
+      "label": "39f38cb4",
+      "metric": "tests_before_first_pass",
+      "value": 48
+    },
+    {
+      "label": "67ade002",
+      "metric": "tests_before_first_pass",
+      "value": 132
+    },
+    {
+      "label": "537db26f",
+      "metric": "tests_after_first_pass",
+      "value": 1016
+    },
+    {
+      "label": "9c186814",
+      "metric": "tests_after_first_pass",
+      "value": 351
+    },
+    {
+      "label": "39f38cb4",
+      "metric": "tests_after_first_pass",
+      "value": 2725
+    },
+    {
+      "label": "67ade002",
+      "metric": "tests_after_first_pass",
+      "value": 2546
+    },
+    {
+      "label": "537db26f",
+      "metric": "max_retry_burst",
+      "value": 0
+    },
+    {
+      "label": "9c186814",
+      "metric": "max_retry_burst",
+      "value": 0
+    },
+    {
+      "label": "39f38cb4",
+      "metric": "max_retry_burst",
+      "value": 1
+    },
+    {
+      "label": "67ade002",
+      "metric": "max_retry_burst",
+      "value": 0
+    }
+  ],
+  "action_palette": {
+    "inspect": "#4C78A8",
+    "plan": "#F58518",
+    "edit": "#54A24B",
+    "execute": "#E45756",
+    "retry": "#B279A2",
+    "wait": "#9D755D",
+    "overhead": "#6C6F7D",
+    "finalize": "#72B7B2"
+  },
+  "overhead_palette": {
+    "persistence_lookup": "#7F8CFF",
+    "persistence_write": "#4C78A8",
+    "orchestration": "#B279A2",
+    "unknown_internal": "#6C6F7D"
+  },
+  "summary": {
+    "run_count": 4,
+    "success_count": 1,
+    "average_cache_ratio": 0.49462105234757814,
+    "average_carry_forward_ratio": 0.9842563459456883,
+    "average_files_before_first_edit": 18.0,
+    "average_tests_before_first_pass": 113.5
+  }
+};
+
+    function buildSuccessScatter() {
+      const rows = comparisonData.runs;
+      Plotly.newPlot('success-scatter', [{
+        type: 'scatter',
+        mode: 'markers+text',
+        x: rows.map((row) => row.total_input_tokens),
+        y: rows.map((row) => row.success_num),
+        text: rows.map((row) => row.label),
+        textposition: 'top center',
+        marker: {
+          size: rows.map((row) => Math.max(12, Math.min(40, 12 + Math.sqrt(row.total_steps)))),
+          color: rows.map((row) => row.cache_ratio),
+          colorscale: 'Viridis',
+          showscale: true,
+          colorbar: { title: 'cache ratio' },
+          line: { color: '#edf1ff', width: 0.8 },
+        },
+        customdata: rows.map((row) => [row.run_id, row.total_steps, row.total_output_tokens, row.carry_forward_ratio, row.tests_before_first_pass, row.files_read_before_first_edit_count, row.edits_before_first_pass]),
+        hovertemplate: '<b>%{text}</b><br>run=%{customdata[0]}<br>input tokens=%{x}<br>output tokens=%{customdata[2]}<br>success=%{y}<br>steps=%{customdata[1]}<br>carry-forward ratio=%{customdata[3]:.2%}<br>tests before first pass=%{customdata[4]}<br>files before first edit=%{customdata[5]}<br>edits before first pass=%{customdata[6]}<extra></extra>',
+      }], {
+        paper_bgcolor: 'rgba(0,0,0,0)',
+        plot_bgcolor: 'rgba(0,0,0,0)',
+        font: { color: '#edf1ff' },
+        xaxis: { title: 'input tokens', gridcolor: '#2b3355' },
+        yaxis: { title: 'success', tickmode: 'array', tickvals: [0, 1], ticktext: ['no', 'yes'], gridcolor: '#2b3355' },
+        margin: { l: 70, r: 50, t: 16, b: 48 },
+      }, { responsive: true });
+    }
+
+    function buildStackedBar(elementId, rows, palette) {
+      const actions = [...new Set(rows.map((row) => row.action))];
+      const labels = [...new Set(rows.map((row) => row.label))];
+      const traces = actions.map((action) => {
+        const filtered = rows.filter((row) => row.action === action);
+        return {
+          type: 'bar',
+          name: action,
+          x: filtered.map((row) => row.label),
+          y: filtered.map((row) => row.share),
+          marker: { color: palette[action] || '#888' },
+          hovertemplate: `${action}: %{y:.1%}<extra></extra>`,
+        };
+      });
+      Plotly.newPlot(elementId, traces, {
+        barmode: 'stack',
+        paper_bgcolor: 'rgba(0,0,0,0)',
+        plot_bgcolor: 'rgba(0,0,0,0)',
+        font: { color: '#edf1ff' },
+        xaxis: { categoryorder: 'array', categoryarray: labels },
+        yaxis: { title: 'share of steps', tickformat: '.0%', gridcolor: '#2b3355' },
+        margin: { l: 70, r: 24, t: 16, b: 48 },
+        legend: { orientation: 'h' },
+      }, { responsive: true });
+    }
+
+    function buildBurdenScatter() {
+      const rows = comparisonData.runs;
+      Plotly.newPlot('burden-scatter', [{
+        type: 'scatter',
+        mode: 'markers+text',
+        x: rows.map((row) => row.files_read_before_first_edit_count),
+        y: rows.map((row) => row.tests_before_first_pass),
+        text: rows.map((row) => row.label),
+        textposition: 'top center',
+        marker: {
+          size: rows.map((row) => Math.max(12, Math.min(40, 12 + Math.sqrt(row.total_steps)))),
+          color: rows.map((row) => row.carry_forward_ratio),
+          colorscale: 'Plasma',
+          showscale: true,
+          colorbar: { title: 'carry-forward' },
+          line: { color: '#edf1ff', width: 0.8 },
+        },
+        customdata: rows.map((row) => [row.max_retry_burst, row.edits_before_first_pass, row.tests_after_first_pass]),
+        hovertemplate: '<b>%{text}</b><br>files before first edit=%{x}<br>tests before first pass=%{y}<br>edits before first pass=%{customdata[1]}<br>tests after first pass=%{customdata[2]}<br>max retry burst=%{customdata[0]}<extra></extra>',
+      }], {
+        paper_bgcolor: 'rgba(0,0,0,0)',
+        plot_bgcolor: 'rgba(0,0,0,0)',
+        font: { color: '#edf1ff' },
+        xaxis: { title: 'files before first edit', gridcolor: '#2b3355' },
+        yaxis: { title: 'tests before first pass', gridcolor: '#2b3355' },
+        margin: { l: 70, r: 50, t: 16, b: 48 },
+      }, { responsive: true });
+    }
+
+    function buildBurdenBars() {
+      const rows = comparisonData.burden_breakdown;
+      const metrics = [...new Set(rows.map((row) => row.metric))];
+      const traces = metrics.map((metric) => {
+        const filtered = rows.filter((row) => row.metric === metric);
+        return {
+          type: 'bar',
+          name: metric.replaceAll('_', ' '),
+          x: filtered.map((row) => row.label),
+          y: filtered.map((row) => row.value),
+          hovertemplate: `${metric.replaceAll('_', ' ')}: %{y}<extra></extra>`,
+        };
+      });
+      Plotly.newPlot('burden-bars', traces, {
+        barmode: 'group',
+        paper_bgcolor: 'rgba(0,0,0,0)',
+        plot_bgcolor: 'rgba(0,0,0,0)',
+        font: { color: '#edf1ff' },
+        yaxis: { title: 'count', gridcolor: '#2b3355' },
+        margin: { l: 70, r: 24, t: 16, b: 48 },
+        legend: { orientation: 'h' },
+      }, { responsive: true });
+    }
+
+    buildSuccessScatter();
+    buildStackedBar('action-mix', comparisonData.action_breakdown, comparisonData.action_palette);
+    buildStackedBar('visible-action-mix', comparisonData.visible_action_breakdown, comparisonData.action_palette);
+    buildStackedBar('overhead-breakdown', comparisonData.overhead_breakdown, comparisonData.overhead_palette);
+    buildBurdenScatter();
+    buildBurdenBars();
+  </script>
+</body>
+</html>

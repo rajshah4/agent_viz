@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Laminar Example Run</title>
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0f1220;
+      --panel: #171b2e;
+      --panel-soft: #11162a;
+      --border: #2b3355;
+      --text: #edf1ff;
+      --muted: #9aa6d1;
+      --accent: #72b7b2;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: Inter, ui-sans-serif, system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); }
+    .page { max-width: 1380px; margin: 0 auto; padding: 24px; }
+    h1 { margin: 0 0 8px; font-size: 30px; }
+    p.lead { margin: 0 0 20px; color: var(--muted); }
+    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 20px; }
+    .card { background: linear-gradient(180deg, var(--panel), var(--panel-soft)); border: 1px solid var(--border); border-radius: 14px; padding: 14px; min-height: 90px; }
+    .card-label { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+    .card-value { font-size: 24px; font-weight: 650; }
+    .grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
+    .panel { background: linear-gradient(180deg, var(--panel), var(--panel-soft)); border: 1px solid var(--border); border-radius: 16px; padding: 14px; }
+    .panel h2 { margin: 0 0 6px; font-size: 18px; }
+    .panel p { margin: 0 0 12px; color: var(--muted); font-size: 14px; }
+    .chart { width: 100%; height: 420px; }
+    .chart.short { height: 360px; }
+    @media (min-width: 1100px) {
+      .grid.two { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <h1>Laminar Example Run</h1>
+    <p class="lead">Single-run dashboard for agent behavior: timeline, prompt carry-forward, progress, and file transitions.</p>
+    <div class="cards"><div class="card"><div class="card-label">Run</div><div class="card-value">trace-demo-001</div></div><div class="card"><div class="card-label">Success</div><div class="card-value">yes</div></div><div class="card"><div class="card-label">Steps</div><div class="card-value">5</div></div><div class="card"><div class="card-label">Duration</div><div class="card-value">10.0s</div></div><div class="card"><div class="card-label">Input tokens</div><div class="card-value">470</div></div><div class="card"><div class="card-label">Cached tokens</div><div class="card-value">80</div></div><div class="card"><div class="card-label">Tests passed</div><div class="card-value">4/4</div></div><div class="card"><div class="card-label">Cache ratio</div><div class="card-value">14.5%</div></div></div>
+    <div class="grid">
+      <section class="panel">
+        <h2>Run timeline</h2>
+        <p>Each bar shows one event positioned by time, colored by dominant action type.</p>
+        <div id="timeline" class="chart"></div>
+      </section>
+      <div class="grid two">
+        <section class="panel">
+          <h2>Prompt composition per step</h2>
+          <p>How much of each prompt appears to be new, retrieved, replayed, cached, or tool-injected.</p>
+          <div id="prompt-composition" class="chart short"></div>
+        </section>
+        <section class="panel">
+          <h2>File transition graph</h2>
+          <p>Observed movement between files touched during the run, shown as weighted flows.</p>
+          <div id="file-transitions" class="chart short"></div>
+        </section>
+      </div>
+      <section class="panel">
+        <h2>Cumulative progress</h2>
+        <p>Tokens and progress measures over the trajectory, useful for spotting churn versus convergence.</p>
+        <div id="cumulative-progress" class="chart"></div>
+      </section>
+    </div>
+  </div>
+  <script>
+    const dashboardData = {
+  "run_id": "trace-demo-001",
+  "summary": {
+    "run_id": "trace-demo-001",
+    "success": true,
+    "total_steps": 5,
+    "total_duration_ms": 10000,
+    "total_input_tokens": 470,
+    "total_output_tokens": 155,
+    "total_cached_tokens": 80,
+    "total_cost_usd": 0.0213,
+    "total_tests_run": 4,
+    "tests_passed": 4,
+    "tests_failed": 0,
+    "cache_ratio": 0.14545454545454545,
+    "memory_inefficiency_ratio": 0.2872340425531915,
+    "wait_time_ratio": 0.0,
+    "first_edit_step": "span-edit",
+    "first_execute_step": "span-test",
+    "first_passing_test_step": "span-test",
+    "unique_files_read": [
+      "src/agent.py"
+    ],
+    "unique_files_edited": [
+      "src/agent.py",
+      "tests/test_parser.py"
+    ]
+  },
+  "action_palette": {
+    "inspect": "#4C78A8",
+    "plan": "#F58518",
+    "edit": "#54A24B",
+    "execute": "#E45756",
+    "retry": "#B279A2",
+    "wait": "#9D755D",
+    "finalize": "#72B7B2"
+  },
+  "prompt_palette": {
+    "new_task_tokens": "#4C78A8",
+    "retrieved_context_tokens": "#F58518",
+    "replayed_context_tokens": "#E45756",
+    "cached_prefix_tokens": "#72B7B2",
+    "tool_output_tokens": "#54A24B"
+  },
+  "timeline": [
+    {
+      "step_id": "span-read",
+      "step_index": 1,
+      "action_type": "inspect",
+      "event_type": "file_read",
+      "status": "success",
+      "start_ms": 0,
+      "duration_ms": 2000,
+      "end_ms": 2000,
+      "token_input": 40,
+      "token_output": 5,
+      "token_cached": 0,
+      "cost_usd": 0.0002,
+      "files": [
+        "src/agent.py"
+      ],
+      "label": "1: inspect/file_read \u2014 src/agent.py"
+    },
+    {
+      "step_id": "span-plan",
+      "step_index": 2,
+      "action_type": "plan",
+      "event_type": "llm_call",
+      "status": "success",
+      "start_ms": 2000,
+      "duration_ms": 2000,
+      "end_ms": 4000,
+      "token_input": 180,
+      "token_output": 60,
+      "token_cached": 50,
+      "cost_usd": 0.0101,
+      "files": [],
+      "label": "2: plan/llm_call"
+    },
+    {
+      "step_id": "span-edit",
+      "step_index": 3,
+      "action_type": "edit",
+      "event_type": "file_edit",
+      "status": "success",
+      "start_ms": 4000,
+      "duration_ms": 2000,
+      "end_ms": 6000,
+      "token_input": 120,
+      "token_output": 25,
+      "token_cached": 0,
+      "cost_usd": 0.0038,
+      "files": [
+        "src/agent.py",
+        "tests/test_parser.py"
+      ],
+      "label": "3: edit/file_edit \u2014 src/agent.py, tests/test_parser.py"
+    },
+    {
+      "step_id": "span-test",
+      "step_index": 4,
+      "action_type": "execute",
+      "event_type": "test_run",
+      "status": "success",
+      "start_ms": 6000,
+      "duration_ms": 3000,
+      "end_ms": 9000,
+      "token_input": 60,
+      "token_output": 15,
+      "token_cached": 0,
+      "cost_usd": 0.0027,
+      "files": [
+        "tests/test_parser.py"
+      ],
+      "label": "4: execute/test_run \u2014 tests/test_parser.py"
+    },
+    {
+      "step_id": "span-final",
+      "step_index": 5,
+      "action_type": "finalize",
+      "event_type": "llm_call",
+      "status": "success",
+      "start_ms": 9000,
+      "duration_ms": 1000,
+      "end_ms": 10000,
+      "token_input": 70,
+      "token_output": 50,
+      "token_cached": 30,
+      "cost_usd": 0.0045,
+      "files": [],
+      "label": "5: finalize/llm_call"
+    }
+  ],
+  "prompt_composition": [
+    {
+      "step_id": "span-plan",
+      "step_index": 2,
+      "label": "2: span-plan",
+      "new_task_tokens": 50,
+      "retrieved_context_tokens": 25,
+      "replayed_context_tokens": 35,
+      "cached_prefix_tokens": 50,
+      "tool_output_tokens": 20,
+      "total_tokens": 180
+    },
+    {
+      "step_id": "span-final",
+      "step_index": 5,
+      "label": "5: span-final",
+      "new_task_tokens": 10,
+      "retrieved_context_tokens": 0,
+      "replayed_context_tokens": 20,
+      "cached_prefix_tokens": 30,
+      "tool_output_tokens": 10,
+      "total_tokens": 70
+    }
+  ],
+  "cumulative_progress": [
+    {
+      "step_id": "span-read",
+      "step_index": 1,
+      "label": "1: span-read",
+      "cumulative_input_tokens": 40,
+      "cumulative_output_tokens": 5,
+      "cumulative_cached_tokens": 0,
+      "cumulative_tests_run": 0,
+      "cumulative_tests_passed": 0,
+      "cumulative_unique_files": 1
+    },
+    {
+      "step_id": "span-plan",
+      "step_index": 2,
+      "label": "2: span-plan",
+      "cumulative_input_tokens": 220,
+      "cumulative_output_tokens": 65,
+      "cumulative_cached_tokens": 50,
+      "cumulative_tests_run": 0,
+      "cumulative_tests_passed": 0,
+      "cumulative_unique_files": 1
+    },
+    {
+      "step_id": "span-edit",
+      "step_index": 3,
+      "label": "3: span-edit",
+      "cumulative_input_tokens": 340,
+      "cumulative_output_tokens": 90,
+      "cumulative_cached_tokens": 50,
+      "cumulative_tests_run": 0,
+      "cumulative_tests_passed": 0,
+      "cumulative_unique_files": 2
+    },
+    {
+      "step_id": "span-test",
+      "step_index": 4,
+      "label": "4: span-test",
+      "cumulative_input_tokens": 400,
+      "cumulative_output_tokens": 105,
+      "cumulative_cached_tokens": 50,
+      "cumulative_tests_run": 4,
+      "cumulative_tests_passed": 4,
+      "cumulative_unique_files": 2
+    },
+    {
+      "step_id": "span-final",
+      "step_index": 5,
+      "label": "5: span-final",
+      "cumulative_input_tokens": 470,
+      "cumulative_output_tokens": 155,
+      "cumulative_cached_tokens": 80,
+      "cumulative_tests_run": 4,
+      "cumulative_tests_passed": 4,
+      "cumulative_unique_files": 2
+    }
+  ],
+  "file_transitions": {
+    "nodes": [
+      {
+        "id": "src/agent.py",
+        "label": "src/agent.py"
+      },
+      {
+        "id": "tests/test_parser.py",
+        "label": "tests/test_parser.py"
+      }
+    ],
+    "links": [
+      {
+        "source": 0,
+        "target": 0,
+        "value": 1,
+        "label": "src/agent.py \u2192 src/agent.py"
+      },
+      {
+        "source": 0,
+        "target": 1,
+        "value": 1,
+        "label": "src/agent.py \u2192 tests/test_parser.py"
+      },
+      {
+        "source": 1,
+        "target": 1,
+        "value": 1,
+        "label": "tests/test_parser.py \u2192 tests/test_parser.py"
+      }
+    ]
+  },
+  "action_counts": {
+    "inspect": 1,
+    "plan": 1,
+    "edit": 1,
+    "execute": 1,
+    "finalize": 1
+  }
+};
+
+    function buildTimeline() {
+      const rows = dashboardData.timeline;
+      const palette = dashboardData.action_palette;
+      const traces = [];
+      const actionTypes = [...new Set(rows.map((row) => row.action_type))];
+      actionTypes.forEach((action) => {
+        const filtered = rows.filter((row) => row.action_type === action);
+        traces.push({
+          type: 'bar',
+          orientation: 'h',
+          name: action,
+          y: filtered.map((row) => row.label),
+          x: filtered.map((row) => row.duration_ms / 1000),
+          base: filtered.map((row) => row.start_ms / 1000),
+          marker: { color: palette[action] || '#888' },
+          customdata: filtered.map((row) => [row.step_id, row.event_type, row.status, row.token_input, row.token_output, row.token_cached, row.cost_usd]),
+          hovertemplate: '<b>%{y}</b><br>step=%{customdata[0]}<br>event=%{customdata[1]}<br>status=%{customdata[2]}<br>duration=%{x:.2f}s<br>input=%{customdata[3]}<br>output=%{customdata[4]}<br>cached=%{customdata[5]}<br>cost=$%{customdata[6]:.5f}<extra></extra>',
+        });
+      });
+      Plotly.newPlot('timeline', traces, {
+        barmode: 'stack',
+        paper_bgcolor: 'rgba(0,0,0,0)',
+        plot_bgcolor: 'rgba(0,0,0,0)',
+        font: { color: '#edf1ff' },
+        xaxis: { title: 'seconds since run start', gridcolor: '#2b3355' },
+        yaxis: { automargin: true, categoryorder: 'array', categoryarray: rows.map((row) => row.label).reverse() },
+        margin: { l: 200, r: 24, t: 16, b: 48 },
+        legend: { orientation: 'h' },
+      }, { responsive: true });
+    }
+
+    function buildPromptComposition() {
+      const rows = dashboardData.prompt_composition;
+      const palette = dashboardData.prompt_palette;
+      const series = [
+        ['new_task_tokens', 'new task'],
+        ['retrieved_context_tokens', 'retrieved'],
+        ['replayed_context_tokens', 'replayed'],
+        ['cached_prefix_tokens', 'cached'],
+        ['tool_output_tokens', 'tool output'],
+      ];
+      const traces = series.map(([key, label]) => ({
+        type: 'bar',
+        name: label,
+        x: rows.map((row) => row.label),
+        y: rows.map((row) => row[key]),
+        marker: { color: palette[key] || '#888' },
+        hovertemplate: `${label}: %{y} tokens<extra></extra>`,
+      }));
+      Plotly.newPlot('prompt-composition', traces, {
+        barmode: 'stack',
+        paper_bgcolor: 'rgba(0,0,0,0)',
+        plot_bgcolor: 'rgba(0,0,0,0)',
+        font: { color: '#edf1ff' },
+        xaxis: { automargin: true },
+        yaxis: { title: 'tokens', gridcolor: '#2b3355' },
+        margin: { l: 60, r: 24, t: 16, b: 90 },
+        legend: { orientation: 'h' },
+      }, { responsive: true });
+    }
+
+    function buildCumulativeProgress() {
+      const rows = dashboardData.cumulative_progress;
+      const traces = [
+        ['cumulative_input_tokens', 'input tokens', '#4C78A8', 'y1'],
+        ['cumulative_output_tokens', 'output tokens', '#F58518', 'y1'],
+        ['cumulative_cached_tokens', 'cached tokens', '#72B7B2', 'y1'],
+        ['cumulative_tests_run', 'tests run', '#E45756', 'y2'],
+        ['cumulative_tests_passed', 'tests passed', '#54A24B', 'y2'],
+        ['cumulative_unique_files', 'unique files', '#B279A2', 'y2'],
+      ].map(([key, label, color, yaxis]) => ({
+        type: 'scatter',
+        mode: 'lines+markers',
+        name: label,
+        x: rows.map((row) => row.label),
+        y: rows.map((row) => row[key]),
+        line: { color, width: 3 },
+        marker: { color, size: 7 },
+        yaxis,
+        hovertemplate: `${label}: %{y}<extra></extra>`,
+      }));
+      Plotly.newPlot('cumulative-progress', traces, {
+        paper_bgcolor: 'rgba(0,0,0,0)',
+        plot_bgcolor: 'rgba(0,0,0,0)',
+        font: { color: '#edf1ff' },
+        xaxis: { automargin: true },
+        yaxis: { title: 'tokens', gridcolor: '#2b3355' },
+        yaxis2: { title: 'progress counts', overlaying: 'y', side: 'right' },
+        margin: { l: 70, r: 70, t: 16, b: 90 },
+        legend: { orientation: 'h' },
+      }, { responsive: true });
+    }
+
+    function buildFileTransitions() {
+      const graph = dashboardData.file_transitions;
+      if (!graph.nodes.length || !graph.links.length) {
+        document.getElementById('file-transitions').innerHTML = '<div style="padding:24px;color:#9aa6d1;">Not enough file transitions yet.</div>';
+        return;
+      }
+      Plotly.newPlot('file-transitions', [{
+        type: 'sankey',
+        arrangement: 'snap',
+        node: {
+          pad: 18,
+          thickness: 18,
+          line: { color: '#2b3355', width: 1 },
+          label: graph.nodes.map((node) => node.label),
+          color: '#4C78A8',
+        },
+        link: {
+          source: graph.links.map((link) => link.source),
+          target: graph.links.map((link) => link.target),
+          value: graph.links.map((link) => link.value),
+          label: graph.links.map((link) => link.label),
+          color: 'rgba(114,183,178,0.45)',
+        },
+      }], {
+        paper_bgcolor: 'rgba(0,0,0,0)',
+        plot_bgcolor: 'rgba(0,0,0,0)',
+        font: { color: '#edf1ff' },
+        margin: { l: 16, r: 16, t: 16, b: 16 },
+      }, { responsive: true });
+    }
+
+    buildTimeline();
+    buildPromptComposition();
+    buildCumulativeProgress();
+    buildFileTransitions();
+  </script>
+</body>
+</html>

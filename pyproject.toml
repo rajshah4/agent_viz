@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "agent-viz"
+version = "0.1.0"
+description = "Utilities for analyzing long-running coding agent traces"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [
+  { name = "Rajiv Shah" }
+]
+dependencies = []
+
+[project.scripts]
+agent-viz-compare = "agent_viz.render_compare:main"
+agent-viz-laminar = "agent_viz.render_laminar:main"
+
+
+[tool.setuptools.packages.find]
+where = ["src"]

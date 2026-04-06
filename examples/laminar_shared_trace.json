@@ -1,0 +1,113 @@
+{
+  "trace": {
+    "id": "trace-demo-001",
+    "startTime": "2026-02-17T12:40:00+00:00",
+    "endTime": "2026-02-17T12:40:10+00:00",
+    "status": "SUCCESS",
+    "traceType": "AGENT",
+    "inputTokens": 470,
+    "outputTokens": 155,
+    "totalCost": 0.0213,
+    "metadata": {
+      "model": "claude-opus-4-5",
+      "benchmark": "demo-long-run"
+    }
+  },
+  "spans": [
+    {
+      "spanId": "span-read",
+      "name": "read repository file",
+      "spanType": "TOOL",
+      "parentSpanId": null,
+      "startTime": "2026-02-17T12:40:00+00:00",
+      "endTime": "2026-02-17T12:40:02+00:00",
+      "status": "SUCCESS",
+      "attributes": {
+        "toolName": "view",
+        "filePath": "src/agent.py",
+        "command": "sed -n 1,200p src/agent.py"
+      },
+      "inputTokens": 40,
+      "outputTokens": 5,
+      "totalCost": 0.0002
+    },
+    {
+      "spanId": "span-plan",
+      "name": "reason about fix plan",
+      "spanType": "LLM",
+      "parentSpanId": null,
+      "startTime": "2026-02-17T12:40:02+00:00",
+      "endTime": "2026-02-17T12:40:04+00:00",
+      "status": "SUCCESS",
+      "inputTokens": 180,
+      "outputTokens": 60,
+      "cacheReadInputTokens": 50,
+      "retrievedContextTokens": 25,
+      "replayedContextTokens": 35,
+      "toolOutputTokens": 20,
+      "totalCost": 0.0101,
+      "input": {
+        "messages": [
+          {"role": "user", "content": "Fix the failing parser tests."}
+        ]
+      },
+      "output": {
+        "content": "We should inspect parser assumptions, patch extraction, then rerun tests."
+      }
+    },
+    {
+      "spanId": "span-edit",
+      "name": "apply patch to parser",
+      "spanType": "TOOL",
+      "parentSpanId": null,
+      "startTime": "2026-02-17T12:40:04+00:00",
+      "endTime": "2026-02-17T12:40:06+00:00",
+      "status": "SUCCESS",
+      "attributes": {
+        "toolName": "edit",
+        "paths": ["src/agent.py", "tests/test_parser.py"],
+        "command": "python apply_patch.py src/agent.py tests/test_parser.py"
+      },
+      "inputTokens": 120,
+      "outputTokens": 25,
+      "totalCost": 0.0038
+    },
+    {
+      "spanId": "span-test",
+      "name": "run pytest on parser suite",
+      "spanType": "TOOL",
+      "parentSpanId": null,
+      "startTime": "2026-02-17T12:40:06+00:00",
+      "endTime": "2026-02-17T12:40:09+00:00",
+      "status": "SUCCESS",
+      "attributes": {
+        "toolName": "terminal",
+        "command": "pytest tests/test_parser.py -q",
+        "testsPassed": 4,
+        "testsFailed": 0,
+        "testCount": 4
+      },
+      "inputTokens": 60,
+      "outputTokens": 15,
+      "totalCost": 0.0027
+    },
+    {
+      "spanId": "span-final",
+      "name": "submit final answer",
+      "spanType": "LLM",
+      "parentSpanId": null,
+      "startTime": "2026-02-17T12:40:09+00:00",
+      "endTime": "2026-02-17T12:40:10+00:00",
+      "status": "SUCCESS",
+      "inputTokens": 70,
+      "outputTokens": 50,
+      "cacheReadInputTokens": 30,
+      "replayedContextTokens": 20,
+      "toolOutputTokens": 10,
+      "totalCost": 0.0045,
+      "output": {
+        "content": "Implemented the parser fix and verified tests are passing."
+      }
+    }
+  ]
+}

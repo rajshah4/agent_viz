@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Laminar run comparison</title>
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0f1220;
+      --panel: #171b2e;
+      --panel-soft: #11162a;
+      --border: #2b3355;
+      --text: #edf1ff;
+      --muted: #9aa6d1;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: Inter, ui-sans-serif, system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); }
+    .page { max-width: 1380px; margin: 0 auto; padding: 24px; }
+    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 20px; }
+    .card, .panel { background: linear-gradient(180deg, var(--panel), var(--panel-soft)); border: 1px solid var(--border); border-radius: 16px; }
+    .card { padding: 14px; min-height: 90px; }
+    .card-label { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+    .card-value { font-size: 24px; font-weight: 650; }
+    .grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
+    .panel { padding: 14px; }
+    .panel h2 { margin: 0 0 6px; font-size: 18px; }
+    .panel p { margin: 0 0 12px; color: var(--muted); font-size: 14px; }
+    .chart { width: 100%; height: 420px; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { text-align: left; padding: 10px 12px; border-top: 1px solid rgba(154, 166, 209, 0.12); font-size: 14px; }
+    th { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; }
+    @media (min-width: 1100px) {
+      .grid.two { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <h1>Laminar run comparison</h1>
+    <p style="margin:0 0 20px;color:#9aa6d1;">Compare multiple runs under the same harness contract: success, token cost, memory replay, and action mix.</p>
+    <div class="cards"><div class="card"><div class="card-label">Runs</div><div class="card-value">2</div></div><div class="card"><div class="card-label">Successes</div><div class="card-value">0/2</div></div><div class="card"><div class="card-label">Avg cache ratio</div><div class="card-value">49.3%</div></div><div class="card"><div class="card-label">Avg memory inefficiency</div><div class="card-value">97.9%</div></div></div>
+    <div class="grid two">
+      <section class="panel">
+        <h2>Success versus token spend</h2>
+        <p>Each point is one run, sized by total steps and colored by cache ratio.</p>
+        <div id="success-scatter" class="chart"></div>
+      </section>
+      <section class="panel">
+        <h2>Action mix per run</h2>
+        <p>Normalized action shares help compare how different runs use the same harness.</p>
+        <div id="action-mix" class="chart"></div>
+      </section>
+    </div>
+    <section class="panel">
+      <h2>Run summary table</h2>
+      <p>Compact per-run metrics for teaching same-harness / different-model behavior.</p>
+      <table>
+        <thead>
+          <tr><th>Label</th><th>Run ID</th><th>Success</th><th>Input tokens</th><th>Cache ratio</th><th>Memory inefficiency</th><th>Dominant action</th><th>Unique files</th></tr>
+        </thead>
+        <tbody><tr><td>537db26f</td><td>537db26f-50c3-7350-1a28-dfdf1a349f66</td><td>no</td><td>12,492,928</td><td>49.6%</td><td>98.9%</td><td>overhead</td><td>38</td></tr><tr><td>9c186814</td><td>9c186814-4042-2cc0-eda3-a408457ebb56</td><td>no</td><td>956,814</td><td>48.9%</td><td>96.8%</td><td>overhead</td><td>13</td></tr></tbody>
+      </table>
+    </section>
+  </div>
+  <script>
+    const comparisonData = {
+  "runs": [
+    {
+      "label": "537db26f",
+      "run_id": "537db26f-50c3-7350-1a28-dfdf1a349f66",
+      "success": false,
+      "success_num": 0,
+      "total_steps": 1027,
+      "total_duration_ms": 5931218,
+      "total_input_tokens": 12492928,
+      "total_output_tokens": 50715,
+      "total_cached_tokens": 12314444,
+      "total_tests_run": 1242,
+      "tests_passed": 917,
+      "tests_failed": 295,
+      "cache_ratio": 0.4964026016137461,
+      "memory_inefficiency_ratio": 0.9889301371143738,
+      "wait_time_ratio": 0.0,
+      "dominant_action": "overhead",
+      "llm_steps": 126,
+      "unique_files": [
+        "*.py",
+        "/workspace/simpy",
+        "/workspace/simpy/pyproject.toml",
+        "/workspace/simpy/src/simpy",
+        "/workspace/simpy/src/simpy/__init__.py",
+        "/workspace/simpy/src/simpy/core.py",
+        "/workspace/simpy/src/simpy/events.py",
+        "/workspace/simpy/src/simpy/exceptions.py",
+        "/workspace/simpy/src/simpy/resources/base.py",
+        "/workspace/simpy/src/simpy/resources/container.py",
+        "/workspace/simpy/src/simpy/resources/resource.py",
+        "/workspace/simpy/src/simpy/resources/store.py",
+        "/workspace/simpy/src/simpy/rt.py",
+        "/workspace/simpy/src/simpy/util.py",
+        "/workspace/simpy/tests/conftest.py",
+        "/workspace/simpy/tests/test_condition.py",
+        "/workspace/simpy/tests/test_environment.py",
+        "/workspace/simpy/tests/test_event.py",
+        "/workspace/simpy/tests/test_exceptions.py",
+        "/workspace/simpy/tests/test_interrupts.py",
+        "/workspace/simpy/tests/test_process.py",
+        "/workspace/simpy/tests/test_resources.py",
+        "/workspace/simpy/tests/test_rt.py",
+        "/workspace/simpy/tests/test_util.py",
+        "exceptions.py",
+        "simpy/core.py",
+        "simpy/events.py",
+        "simpy/exceptions.py",
+        "simpy/resources/base.py",
+        "simpy/resources/container.py",
+        "simpy/resources/resource.py",
+        "simpy/resources/store.py",
+        "simpy/rt.py",
+        "simpy/util.py",
+        "tests/test_environment.py",
+        "tests/test_exceptions.py",
+        "tests/test_interrupts.py",
+        "tests/test_rt.py"
+      ],
+      "unique_files_count": 38,
+      "action_counts": {
+        "plan": 255,
+        "execute": 155,
+        "overhead": 516,
+        "inspect": 42,
+        "edit": 52,
+        "finalize": 7
+      },
+      "action_shares": {
+        "plan": 0.24829600778967867,
+        "execute": 0.15092502434274585,
+        "overhead": 0.5024342745861733,
+        "inspect": 0.04089581304771178,
+        "edit": 0.05063291139240506,
+        "finalize": 0.006815968841285297
+      }
+    },
+    {
+      "label": "9c186814",
+      "run_id": "9c186814-4042-2cc0-eda3-a408457ebb56",
+      "success": false,
+      "success_num": 0,
+      "total_steps": 267,
+      "total_duration_ms": 1409722,
+      "total_input_tokens": 956814,
+      "total_output_tokens": 9994,
+      "total_cached_tokens": 914304,
+      "total_tests_run": 399,
+      "tests_passed": 387,
+      "tests_failed": 1,
+      "cache_ratio": 0.48864048125238496,
+      "memory_inefficiency_ratio": 0.9681808585576716,
+      "wait_time_ratio": 0.0,
+      "dominant_action": "overhead",
+      "llm_steps": 31,
+      "unique_files": [
+        "/workspace/deprecated",
+        "/workspace/deprecated/deprecated",
+        "/workspace/deprecated/deprecated/__init__.py",
+        "/workspace/deprecated/deprecated/classic.py",
+        "/workspace/deprecated/deprecated/sphinx.py",
+        "/workspace/deprecated/tests/test_deprecated.py",
+        "/workspace/deprecated/tests/test_deprecated_class.py",
+        "/workspace/deprecated/tests/test_sphinx.py",
+        "/workspace/deprecated/tests/test_sphinx_adapter.py",
+        "classic.py",
+        "sphinx.py",
+        "tests/test_deprecated.py",
+        "tests/test_sphinx.py"
+      ],
+      "unique_files_count": 13,
+      "action_counts": {
+        "plan": 66,
+        "execute": 41,
+        "overhead": 136,
+        "inspect": 14,
+        "edit": 8,
+        "finalize": 2
+      },
+      "action_shares": {
+        "plan": 0.24719101123595505,
+        "execute": 0.15355805243445692,
+        "overhead": 0.5093632958801498,
+        "inspect": 0.052434456928838954,
+        "edit": 0.0299625468164794,
+        "finalize": 0.00749063670411985
+      }
+    }
+  ],
+  "action_breakdown": [
+    {
+      "label": "537db26f",
+      "run_id": "537db26f-50c3-7350-1a28-dfdf1a349f66",
+      "action": "edit",
+      "count": 52,
+      "share": 0.05063291139240506
+    },
+    {
+      "label": "537db26f",
+      "run_id": "537db26f-50c3-7350-1a28-dfdf1a349f66",
+      "action": "execute",
+      "count": 155,
+      "share": 0.15092502434274585
+    },
+    {
+      "label": "537db26f",
+      "run_id": "537db26f-50c3-7350-1a28-dfdf1a349f66",
+      "action": "finalize",
+      "count": 7,
+      "share": 0.006815968841285297
+    },
+    {
+      "label": "537db26f",
+      "run_id": "537db26f-50c3-7350-1a28-dfdf1a349f66",
+      "action": "inspect",
+      "count": 42,
+      "share": 0.04089581304771178
+    },
+    {
+      "label": "537db26f",
+      "run_id": "537db26f-50c3-7350-1a28-dfdf1a349f66",
+      "action": "overhead",
+      "count": 516,
+      "share": 0.5024342745861733
+    },
+    {
+      "label": "537db26f",
+      "run_id": "537db26f-50c3-7350-1a28-dfdf1a349f66",
+      "action": "plan",
+      "count": 255,
+      "share": 0.24829600778967867
+    },
+    {
+      "label": "9c186814",
+      "run_id": "9c186814-4042-2cc0-eda3-a408457ebb56",
+      "action": "edit",
+      "count": 8,
+      "share": 0.0299625468164794
+    },
+    {
+      "label": "9c186814",
+      "run_id": "9c186814-4042-2cc0-eda3-a408457ebb56",
+      "action": "execute",
+      "count": 41,
+      "share": 0.15355805243445692
+    },
+    {
+      "label": "9c186814",
+      "run_id": "9c186814-4042-2cc0-eda3-a408457ebb56",
+      "action": "finalize",
+      "count": 2,
+      "share": 0.00749063670411985
+    },
+    {
+      "label": "9c186814",
+      "run_id": "9c186814-4042-2cc0-eda3-a408457ebb56",
+      "action": "inspect",
+      "count": 14,
+      "share": 0.052434456928838954
+    },
+    {
+      "label": "9c186814",
+      "run_id": "9c186814-4042-2cc0-eda3-a408457ebb56",
+      "action": "overhead",
+      "count": 136,
+      "share": 0.5093632958801498
+    },
+    {
+      "label": "9c186814",
+      "run_id": "9c186814-4042-2cc0-eda3-a408457ebb56",
+      "action": "plan",
+      "count": 66,
+      "share": 0.24719101123595505
+    }
+  ],
+  "summary": {
+    "run_count": 2,
+    "success_count": 0,
+    "average_cache_ratio": 0.49252154143306554,
+    "average_memory_inefficiency_ratio": 0.9785554978360227
+  }
+};
+
+    function buildSuccessScatter() {
+      const rows = comparisonData.runs;
+      Plotly.newPlot('success-scatter', [{
+        type: 'scatter',
+        mode: 'markers+text',
+        x: rows.map((row) => row.total_input_tokens),
+        y: rows.map((row) => row.success_num),
+        text: rows.map((row) => row.label),
+        textposition: 'top center',
+        marker: {
+          size: rows.map((row) => Math.max(12, Math.min(40, 12 + Math.sqrt(row.total_steps)))),
+          color: rows.map((row) => row.cache_ratio),
+          colorscale: 'Viridis',
+          showscale: true,
+          colorbar: { title: 'cache ratio' },
+          line: { color: '#edf1ff', width: 0.8 },
+        },
+        customdata: rows.map((row) => [row.run_id, row.total_steps, row.memory_inefficiency_ratio]),
+        hovertemplate: '<b>%{text}</b><br>run=%{customdata[0]}<br>tokens=%{x}<br>success=%{y}<br>steps=%{customdata[1]}<br>memory inefficiency=%{customdata[2]:.2%}<extra></extra>',
+      }], {
+        paper_bgcolor: 'rgba(0,0,0,0)',
+        plot_bgcolor: 'rgba(0,0,0,0)',
+        font: { color: '#edf1ff' },
+        xaxis: { title: 'input tokens', gridcolor: '#2b3355' },
+        yaxis: { title: 'success', tickmode: 'array', tickvals: [0, 1], ticktext: ['no', 'yes'], gridcolor: '#2b3355' },
+        margin: { l: 70, r: 50, t: 16, b: 48 },
+      }, { responsive: true });
+    }
+
+    function buildActionMix() {
+      const rows = comparisonData.action_breakdown;
+      const actions = [...new Set(rows.map((row) => row.action))];
+      const labels = [...new Set(rows.map((row) => row.label))];
+      const traces = actions.map((action) => {
+        const filtered = rows.filter((row) => row.action === action);
+        return {
+          type: 'bar',
+          name: action,
+          x: filtered.map((row) => row.label),
+          y: filtered.map((row) => row.share),
+          hovertemplate: `${action}: %{y:.1%}<extra></extra>`,
+        };
+      });
+      Plotly.newPlot('action-mix', traces, {
+        barmode: 'stack',
+        paper_bgcolor: 'rgba(0,0,0,0)',
+        plot_bgcolor: 'rgba(0,0,0,0)',
+        font: { color: '#edf1ff' },
+        xaxis: { categoryorder: 'array', categoryarray: labels },
+        yaxis: { title: 'share of steps', tickformat: '.0%', gridcolor: '#2b3355' },
+        margin: { l: 70, r: 24, t: 16, b: 48 },
+        legend: { orientation: 'h' },
+      }, { responsive: true });
+    }
+
+    buildSuccessScatter();
+    buildActionMix();
+  </script>
+</body>
+</html>
