@@ -68,6 +68,8 @@ Current implemented artifacts:
 - Comparison dashboards now emphasize direct lower-is-better burden metrics instead of abstract ratios: files before first edit, edits before first pass, tests before first pass, tests after first pass, and max retry burst.
 - For failed runs, `tests before first pass` falls back to total tests run before the trace ended; this keeps the metric easy to compare across success and failure cases.
 - The comparison page includes run focus snapshots showing top modules and top files, which is useful when same-benchmark traces have similar action mixes but touch different code areas.
+- GitHub Pages publishing is intentionally minimal: a hand-written root `index.html` plus `.github/workflows/deploy-pages.yml`, which copies a curated set of standalone HTML dashboards into `_site`; update both files together when changing the showcase.
+
 
 
 

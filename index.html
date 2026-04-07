@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>agent_viz trace gallery</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0d1324;
+      --panel: #151d35;
+      --border: rgba(162, 180, 255, 0.18);
+      --text: #edf2ff;
+      --muted: #aeb8d8;
+      --accent: #78d2c8;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, sans-serif;
+      background: radial-gradient(circle at top, #1a2548, var(--bg) 42%);
+      color: var(--text);
+    }
+    main { max-width: 1100px; margin: 0 auto; padding: 40px 24px 64px; }
+    h1 { margin: 0 0 10px; font-size: clamp(2.4rem, 6vw, 4rem); }
+    .lead { max-width: 760px; color: var(--muted); line-height: 1.6; margin: 0 0 28px; }
+    .section { margin-top: 28px; }
+    .section h2 { margin: 0 0 14px; font-size: 1.25rem; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 14px;
+    }
+    a.card {
+      display: grid;
+      gap: 10px;
+      padding: 18px;
+      border-radius: 18px;
+      text-decoration: none;
+      color: inherit;
+      background: linear-gradient(180deg, rgba(21, 29, 53, 0.98), rgba(16, 22, 41, 0.98));
+      border: 1px solid var(--border);
+      transition: transform 120ms ease, border-color 120ms ease;
+    }
+    a.card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(120, 210, 200, 0.55);
+    }
+    .eyebrow {
+      color: var(--accent);
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+    .filename { color: var(--muted); font-size: 0.92rem; word-break: break-word; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>agent_viz trace gallery</h1>
+    <p class="lead">
+      A small GitHub Pages landing page for showing off standalone trace dashboards.
+      These pages are static HTML artifacts, so they host cleanly without any backend.
+    </p>
+
+    <section class="section">
+      <h2>Comparison views</h2>
+      <div class="grid">
+        <a class="card" href="agent_viz_compare_four_live.html">
+          <span class="eyebrow">comparison</span>
+          <strong>Four live traces</strong>
+          <span class="filename">agent_viz_compare_four_live.html</span>
+        </a>
+        <a class="card" href="agent_viz_compare_two_live.html">
+          <span class="eyebrow">comparison</span>
+          <strong>Two live traces</strong>
+          <span class="filename">agent_viz_compare_two_live.html</span>
+        </a>
+        <a class="card" href="agent_viz_compare.html">
+          <span class="eyebrow">comparison</span>
+          <strong>Baseline comparison dashboard</strong>
+          <span class="filename">agent_viz_compare.html</span>
+        </a>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Single trace dashboards</h2>
+      <div class="grid">
+        <a class="card" href="laminar_trace_39f38cb4.html">
+          <span class="eyebrow">single trace</span>
+          <strong>Laminar Trace 39f38cb4</strong>
+          <span class="filename">laminar_trace_39f38cb4.html</span>
+        </a>
+        <a class="card" href="laminar_trace_537db26f.html">
+          <span class="eyebrow">single trace</span>
+          <strong>Laminar Trace 537db26f</strong>
+          <span class="filename">laminar_trace_537db26f.html</span>
+        </a>
+        <a class="card" href="laminar_trace_67ade002.html">
+          <span class="eyebrow">single trace</span>
+          <strong>Laminar Trace 67ade002</strong>
+          <span class="filename">laminar_trace_67ade002.html</span>
+        </a>
+        <a class="card" href="laminar_trace_9c186814.html">
+          <span class="eyebrow">single trace</span>
+          <strong>Laminar Trace 9c186814</strong>
+          <span class="filename">laminar_trace_9c186814.html</span>
+        </a>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
