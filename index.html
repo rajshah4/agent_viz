@@ -23,7 +23,24 @@
     }
     main { max-width: 1100px; margin: 0 auto; padding: 40px 24px 64px; }
     h1 { margin: 0 0 10px; font-size: clamp(2.4rem, 6vw, 4rem); }
-    .lead { max-width: 760px; color: var(--muted); line-height: 1.6; margin: 0 0 28px; }
+    .lead { max-width: 760px; color: var(--muted); line-height: 1.6; margin: 0 0 18px; }
+    .top-links { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 28px; }
+    .top-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      color: var(--text);
+      text-decoration: none;
+      background: rgba(21, 29, 53, 0.92);
+      border: 1px solid var(--border);
+      transition: transform 120ms ease, border-color 120ms ease;
+    }
+    .top-link:hover {
+      transform: translateY(-1px);
+      border-color: rgba(120, 210, 200, 0.55);
+    }
     .section { margin-top: 28px; }
     .section h2 { margin: 0 0 14px; font-size: 1.25rem; }
     .grid {
@@ -62,6 +79,9 @@
       A small GitHub Pages landing page for showing off standalone trace dashboards.
       These pages are static HTML artifacts, so they host cleanly without any backend.
     </p>
+    <div class="top-links">
+      <a class="top-link" href="https://github.com/rajshah4/agent_viz" target="_blank" rel="noreferrer">View source on GitHub</a>
+    </div>
 
     <section class="section">
       <h2>Comparison views</h2>
