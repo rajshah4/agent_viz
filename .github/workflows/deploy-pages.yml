@@ -30,8 +30,6 @@ jobs:
           mkdir -p _site
           cp index.html _site/
           cp \
-            agent_viz_compare.html \
-            agent_viz_compare_two_live.html \
             agent_viz_compare_four_live.html \
             laminar_trace_39f38cb4.html \
             laminar_trace_537db26f.html \
