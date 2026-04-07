@@ -69,7 +69,8 @@ Current implemented artifacts:
 - For failed runs, `tests before first pass` falls back to total tests run before the trace ended; this keeps the metric easy to compare across success and failure cases.
 - The comparison page includes run focus snapshots showing top modules and top files, which is useful when same-benchmark traces have similar action mixes but touch different code areas.
 - GitHub Pages publishing is intentionally minimal: a hand-written root `index.html` plus `.github/workflows/deploy-pages.yml`, which copies a curated set of standalone HTML dashboards into `_site`; update both files together when changing the showcase.
-- Single-run dashboards now include `Feedback follow-through (3 steps)`, a second Sankey that extends feedback into the next three material actions; it skips `plan` and `overhead` to highlight actual follow-through like inspect, edit, execute, retry, wait, or finalize.
+- Single-run dashboards keep `Feedback to next action` for immediate observation routing, but the staged follow-through view is now edit-centered: `After edit, what happened next?` traces the next three material actions after each edit while skipping `plan` and `overhead`, making edit → execute verification, edit → edit chaining, edit → inspect reconsideration, and edit → finalize conclusion attempts easy to spot.
+- In the dashboard copy, `finalize` means the run appeared to conclude or submit an answer, not necessarily the literal last raw event in the trace.
 - Feedback categorization now prefers explicit test outcomes (`test failure` / `test pass`) over a generic `tool error` label for test-run events.
 
 

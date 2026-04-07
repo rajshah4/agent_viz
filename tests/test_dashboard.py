@@ -43,9 +43,9 @@ class DashboardTestCase(unittest.TestCase):
         self.assertEqual(data["lane_summary"][0]["lane"], "controller")
         self.assertTrue(data["lane_handoffs"]["links"])
         self.assertEqual(data["feedback_next_action"]["nodes"][0]["kind"], "feedback")
-        self.assertTrue(data["feedback_follow_through"]["nodes"])
-        self.assertTrue(data["feedback_follow_through"]["links"])
-        self.assertIn(1, {node["stage"] for node in data["feedback_follow_through"]["nodes"] if node["kind"] == "action"})
+        self.assertTrue(data["edit_follow_through"]["nodes"])
+        self.assertTrue(data["edit_follow_through"]["links"])
+        self.assertIn(1, {node["stage"] for node in data["edit_follow_through"]["nodes"] if node["kind"] == "action"})
         self.assertEqual(data["cumulative_progress"][-1]["cumulative_tests_passed"], 4)
         self.assertEqual(data["summary"]["files_before_first_edit_count"], 1)
         self.assertEqual(data["summary"]["edits_before_first_pass"], 1)
@@ -57,25 +57,23 @@ class DashboardTestCase(unittest.TestCase):
         self.assertTrue(data["file_transitions"]["links"])
         self.assertNotIn("/", data["file_transitions"]["nodes"][0]["label"])
 
-    def test_feedback_follow_through_tracks_three_material_steps(self) -> None:
+    def test_edit_follow_through_highlights_edit_chains_and_verification(self) -> None:
         base_time = datetime(2024, 1, 1, tzinfo=timezone.utc)
         events = [
             NormalizedEvent(
-                run_id="trace-follow-through",
+                run_id="trace-edit-follow-through",
                 step_id="step-1",
-                action_type=ActionType.INSPECT,
+                action_type=ActionType.EDIT,
                 source=EventSource.TOOL,
-                event_type=EventType.TEST_RUN,
-                status=StepStatus.ERROR,
+                event_type=EventType.FILE_EDIT,
+                status=StepStatus.SUCCESS,
                 timestamp_start=base_time,
                 timestamp_end=base_time + timedelta(seconds=1),
-                test_count=1,
-                tests_failed=1,
-                tool_name="terminal",
-                metadata={"output": "1 failed"},
+                file_paths=("/workspace/app.py",),
+                tool_name="file_editor",
             ),
             NormalizedEvent(
-                run_id="trace-follow-through",
+                run_id="trace-edit-follow-through",
                 step_id="step-2",
                 action_type=ActionType.PLAN,
                 source=EventSource.SYSTEM,
@@ -86,11 +84,11 @@ class DashboardTestCase(unittest.TestCase):
                 tool_name="task_tracker",
             ),
             NormalizedEvent(
-                run_id="trace-follow-through",
+                run_id="trace-edit-follow-through",
                 step_id="step-3",
-                action_type=ActionType.INSPECT,
+                action_type=ActionType.EDIT,
                 source=EventSource.TOOL,
-                event_type=EventType.FILE_READ,
+                event_type=EventType.FILE_EDIT,
                 status=StepStatus.SUCCESS,
                 timestamp_start=base_time + timedelta(seconds=4),
                 timestamp_end=base_time + timedelta(seconds=5),
@@ -98,26 +96,14 @@ class DashboardTestCase(unittest.TestCase):
                 tool_name="file_editor",
             ),
             NormalizedEvent(
-                run_id="trace-follow-through",
+                run_id="trace-edit-follow-through",
                 step_id="step-4",
-                action_type=ActionType.EDIT,
-                source=EventSource.TOOL,
-                event_type=EventType.FILE_EDIT,
-                status=StepStatus.SUCCESS,
-                timestamp_start=base_time + timedelta(seconds=6),
-                timestamp_end=base_time + timedelta(seconds=7),
-                file_paths=("/workspace/app.py",),
-                tool_name="file_editor",
-            ),
-            NormalizedEvent(
-                run_id="trace-follow-through",
-                step_id="step-5",
                 action_type=ActionType.EXECUTE,
                 source=EventSource.TOOL,
                 event_type=EventType.TEST_RUN,
                 status=StepStatus.SUCCESS,
-                timestamp_start=base_time + timedelta(seconds=8),
-                timestamp_end=base_time + timedelta(seconds=9),
+                timestamp_start=base_time + timedelta(seconds=6),
+                timestamp_end=base_time + timedelta(seconds=7),
                 test_count=1,
                 tests_passed=1,
                 tool_name="terminal",
@@ -125,12 +111,12 @@ class DashboardTestCase(unittest.TestCase):
             ),
         ]
 
-        graph = build_single_run_dashboard_data(events)["feedback_follow_through"]
+        graph = build_single_run_dashboard_data(events)["edit_follow_through"]
         labels = {link["label"] for link in graph["links"]}
 
-        self.assertIn("test failure → inspect (step 1)", labels)
-        self.assertIn("inspect (step 1) → edit (step 2)", labels)
-        self.assertIn("edit (step 2) → execute (step 3)", labels)
+        self.assertIn("edit → edit (step 1)", labels)
+        self.assertIn("edit (step 1) → execute (step 2)", labels)
+        self.assertIn("edit → execute (step 1)", labels)
 
 
     def test_render_single_run_dashboard_writes_html(self) -> None:
@@ -156,7 +142,7 @@ class DashboardTestCase(unittest.TestCase):
         self.assertIn("Handoff", html)
         self.assertIn("Dominant lane by time", html)
         self.assertIn("Feedback to next action", html)
-        self.assertIn("Feedback follow-through (3 steps)", html)
+        self.assertIn("After edit, what happened next?", html)
         self.assertIn("Prompt makeup per LLM call", html)
         self.assertIn("fresh repo/tool context", html)
         self.assertIn("File transition graph (top files)", html)

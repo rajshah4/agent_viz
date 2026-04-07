@@ -230,7 +230,7 @@ def build_single_run_dashboard_data(events: list[NormalizedEvent]) -> dict[str, 
     filtered_transitions = _filter_top_file_transitions(transitions, file_touch_counts, max_files=8)
     transition_graph = _build_transition_graph(filtered_transitions)
     feedback_graph = _build_feedback_action_graph(ordered_events)
-    feedback_follow_through_graph = _build_feedback_follow_through_graph(ordered_events)
+    edit_follow_through_graph = _build_edit_follow_through_graph(ordered_events)
     lane_occupancy_rows, lane_summary_rows, lane_handoff_graph = _build_lane_views(
         timeline_rows,
         total_run_duration_ms=summary.wall_clock_duration_ms,
@@ -304,7 +304,7 @@ def build_single_run_dashboard_data(events: list[NormalizedEvent]) -> dict[str, 
         "prompt_composition": prompt_rows,
         "cumulative_progress": cumulative_rows,
         "feedback_next_action": feedback_graph,
-        "feedback_follow_through": feedback_follow_through_graph,
+        "edit_follow_through": edit_follow_through_graph,
         "file_transitions": transition_graph,
         "burden_metrics": burden_rows,
         "action_counts": dict(action_counts),
@@ -441,7 +441,7 @@ def _build_feedback_action_graph(events: list[NormalizedEvent]) -> dict[str, lis
     return {"nodes": nodes, "links": links}
 
 
-def _build_feedback_follow_through_graph(
+def _build_edit_follow_through_graph(
     events: list[NormalizedEvent],
     *,
     steps: int = 3,
@@ -449,14 +449,13 @@ def _build_feedback_follow_through_graph(
     transitions: Counter[tuple[tuple[str, int, str], tuple[str, int, str]]] = Counter()
     ordered_events = _ordered_events(events)
     for index, event in enumerate(ordered_events[:-1]):
-        feedback_category = _feedback_category(event)
-        if not feedback_category:
+        if event.action_type != ActionType.EDIT:
             continue
         follow_through = _next_visible_actions(ordered_events, start_index=index + 1, limit=steps)
         if not follow_through:
             continue
 
-        path = [("feedback", 0, feedback_category)]
+        path = [("anchor", 0, ActionType.EDIT.value)]
         path.extend(("action", step_index, action) for step_index, action in enumerate(follow_through, start=1))
         for source_node, target_node in zip(path, path[1:]):
             transitions[(source_node, target_node)] += 1
@@ -474,7 +473,7 @@ def _build_feedback_follow_through_graph(
                 "label": label,
                 "kind": kind,
                 "stage": stage,
-                "stage_label": _feedback_follow_through_label(label, kind, stage),
+                "stage_label": _follow_through_stage_label(label, kind, stage),
             })
         return node_index[key]
 
@@ -487,8 +486,8 @@ def _build_feedback_follow_through_graph(
                 "target": get_index(target_label, target_kind, target_stage),
                 "value": weight,
                 "label": (
-                    f"{_feedback_follow_through_label(source_label, source_kind, source_stage)} → "
-                    f"{_feedback_follow_through_label(target_label, target_kind, target_stage)}"
+                    f"{_follow_through_stage_label(source_label, source_kind, source_stage)} → "
+                    f"{_follow_through_stage_label(target_label, target_kind, target_stage)}"
                 ),
             }
         )
@@ -496,8 +495,8 @@ def _build_feedback_follow_through_graph(
     return {"nodes": nodes, "links": links}
 
 
-def _feedback_follow_through_label(label: str, kind: str, stage: int) -> str:
-    if kind == "feedback":
+def _follow_through_stage_label(label: str, kind: str, stage: int) -> str:
+    if kind == "anchor":
         return label
     return f"{label} (step {stage})"
 
@@ -882,9 +881,9 @@ def _build_dashboard_html(dashboard_data: dict[str, Any], *, title: str | None) 
         </section>
       </div>
       <section class=\"panel\">
-        <h2>Feedback follow-through (3 steps)</h2>
-        <p>How those same observations played out over the next three material actions, skipping plan and overhead so you can see whether feedback actually led toward inspect, edit, execute, retry, wait, or finalize.</p>
-        <div id=\"feedback-follow-through\" class=\"chart short\"></div>
+        <h2>After edit, what happened next?</h2>
+        <p>Tracks the next three material actions after each edit, skipping plan and overhead so you can see edit → execute verification, edit → edit chaining, edit → inspect reconsideration, or edit → finalize conclusion attempts. Here, <code>finalize</code> means the run appeared to conclude, not necessarily the literal last raw event.</p>
+        <div id=\"edit-follow-through\" class=\"chart short\"></div>
       </section>
       <section class=\"panel\">
         <h2>Lane summary and handoffs</h2>
@@ -1091,22 +1090,22 @@ def _build_dashboard_html(dashboard_data: dict[str, Any], *, title: str | None) 
       wireStepClicks('harness-loop');
     }
 
-    function buildFeedbackFollowThrough() {
-      const graph = dashboardData.feedback_follow_through;
+    function buildEditFollowThrough() {
+      const graph = dashboardData.edit_follow_through;
       if (!graph.nodes.length || !graph.links.length) {
-        document.getElementById('feedback-follow-through').innerHTML = '<div style="padding:24px;color:#9aa6d1;">Not enough follow-through after observable feedback yet.</div>';
+        document.getElementById('edit-follow-through').innerHTML = '<div style="padding:24px;color:#9aa6d1;">Not enough edit follow-through yet to show what happened after edits.</div>';
         return;
       }
       const stagePositions = { 0: 0.01, 1: 0.34, 2: 0.67, 3: 0.99 };
-      Plotly.newPlot('feedback-follow-through', [{
+      Plotly.newPlot('edit-follow-through', [{
         type: 'sankey',
         arrangement: 'snap',
         node: {
           pad: 18,
           thickness: 18,
           line: { color: '#2b3355', width: 1 },
-          label: graph.nodes.map((node) => node.label),
-          color: graph.nodes.map((node) => node.kind === 'feedback' ? '#4C78A8' : (dashboardData.action_palette[node.label] || '#F58518')),
+          label: graph.nodes.map((node) => node.stage_label || node.label),
+          color: graph.nodes.map((node) => dashboardData.action_palette[node.label] || '#F58518'),
           x: graph.nodes.map((node) => stagePositions[node.stage] ?? 0.99),
         },
         link: {
@@ -1412,7 +1411,7 @@ def _build_dashboard_html(dashboard_data: dict[str, Any], *, title: str | None) 
     buildLaneSummary();
     buildLaneHandoffs();
     buildFeedbackNextAction();
-    buildFeedbackFollowThrough();
+    buildEditFollowThrough();
     buildTimeline();
     buildPromptComposition();
     buildControlTimeline();

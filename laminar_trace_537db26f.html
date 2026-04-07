@@ -78,9 +78,9 @@
         </section>
       </div>
       <section class="panel">
-        <h2>Feedback follow-through (3 steps)</h2>
-        <p>How those same observations played out over the next three material actions, skipping plan and overhead so you can see whether feedback actually led toward inspect, edit, execute, retry, wait, or finalize.</p>
-        <div id="feedback-follow-through" class="chart short"></div>
+        <h2>After edit, what happened next?</h2>
+        <p>Tracks the next three material actions after each edit, skipping plan and overhead so you can see edit → execute verification, edit → edit chaining, edit → inspect reconsideration, or edit → finalize conclusion attempts. Here, <code>finalize</code> means the run appeared to conclude, not necessarily the literal last raw event.</p>
+        <div id="edit-follow-through" class="chart short"></div>
       </section>
       <section class="panel">
         <h2>Lane summary and handoffs</h2>
@@ -75591,7 +75591,7 @@
       }
     ]
   },
-  "feedback_follow_through": {
+  "edit_follow_through": {
     "nodes": [
       {
         "id": "action:1:execute",
@@ -75643,194 +75643,79 @@
         "stage_label": "finalize (step 3)"
       },
       {
-        "id": "action:3:edit",
+        "id": "anchor:0:edit",
         "label": "edit",
-        "kind": "action",
-        "stage": 3,
-        "stage_label": "edit (step 3)"
-      },
-      {
-        "id": "feedback:0:controller update",
-        "label": "controller update",
-        "kind": "feedback",
+        "kind": "anchor",
         "stage": 0,
-        "stage_label": "controller update"
-      },
-      {
-        "id": "feedback:0:edit result",
-        "label": "edit result",
-        "kind": "feedback",
-        "stage": 0,
-        "stage_label": "edit result"
-      },
-      {
-        "id": "feedback:0:file content",
-        "label": "file content",
-        "kind": "feedback",
-        "stage": 0,
-        "stage_label": "file content"
-      },
-      {
-        "id": "feedback:0:repo listing",
-        "label": "repo listing",
-        "kind": "feedback",
-        "stage": 0,
-        "stage_label": "repo listing"
-      },
-      {
-        "id": "feedback:0:test failure",
-        "label": "test failure",
-        "kind": "feedback",
-        "stage": 0,
-        "stage_label": "test failure"
-      },
-      {
-        "id": "feedback:0:test output",
-        "label": "test output",
-        "kind": "feedback",
-        "stage": 0,
-        "stage_label": "test output"
-      },
-      {
-        "id": "feedback:0:test pass",
-        "label": "test pass",
-        "kind": "feedback",
-        "stage": 0,
-        "stage_label": "test pass"
+        "stage_label": "edit"
       }
     ],
     "links": [
       {
         "source": 0,
         "target": 1,
-        "value": 51,
+        "value": 32,
         "label": "execute (step 1) \u2192 edit (step 2)"
       },
       {
         "source": 0,
         "target": 2,
-        "value": 27,
+        "value": 12,
         "label": "execute (step 1) \u2192 execute (step 2)"
       },
       {
         "source": 0,
         "target": 3,
-        "value": 41,
+        "value": 7,
         "label": "execute (step 1) \u2192 inspect (step 2)"
       },
       {
         "source": 4,
         "target": 2,
-        "value": 6,
+        "value": 1,
         "label": "finalize (step 1) \u2192 execute (step 2)"
       },
       {
         "source": 1,
         "target": 5,
-        "value": 50,
+        "value": 32,
         "label": "edit (step 2) \u2192 execute (step 3)"
-      },
-      {
-        "source": 1,
-        "target": 6,
-        "value": 1,
-        "label": "edit (step 2) \u2192 finalize (step 3)"
-      },
-      {
-        "source": 2,
-        "target": 7,
-        "value": 3,
-        "label": "execute (step 2) \u2192 edit (step 3)"
       },
       {
         "source": 2,
         "target": 5,
-        "value": 26,
+        "value": 10,
         "label": "execute (step 2) \u2192 execute (step 3)"
       },
       {
         "source": 2,
         "target": 6,
-        "value": 4,
+        "value": 3,
         "label": "execute (step 2) \u2192 finalize (step 3)"
       },
       {
         "source": 3,
         "target": 5,
-        "value": 39,
+        "value": 6,
         "label": "inspect (step 2) \u2192 execute (step 3)"
       },
       {
         "source": 3,
         "target": 6,
-        "value": 2,
+        "value": 1,
         "label": "inspect (step 2) \u2192 finalize (step 3)"
       },
       {
-        "source": 8,
-        "target": 0,
-        "value": 2,
-        "label": "controller update \u2192 execute (step 1)"
-      },
-      {
-        "source": 9,
+        "source": 7,
         "target": 0,
         "value": 51,
-        "label": "edit result \u2192 execute (step 1)"
+        "label": "edit \u2192 execute (step 1)"
       },
       {
-        "source": 9,
+        "source": 7,
         "target": 4,
         "value": 1,
-        "label": "edit result \u2192 finalize (step 1)"
-      },
-      {
-        "source": 10,
-        "target": 0,
-        "value": 34,
-        "label": "file content \u2192 execute (step 1)"
-      },
-      {
-        "source": 10,
-        "target": 4,
-        "value": 3,
-        "label": "file content \u2192 finalize (step 1)"
-      },
-      {
-        "source": 11,
-        "target": 0,
-        "value": 8,
-        "label": "repo listing \u2192 execute (step 1)"
-      },
-      {
-        "source": 12,
-        "target": 0,
-        "value": 14,
-        "label": "test failure \u2192 execute (step 1)"
-      },
-      {
-        "source": 12,
-        "target": 4,
-        "value": 1,
-        "label": "test failure \u2192 finalize (step 1)"
-      },
-      {
-        "source": 13,
-        "target": 0,
-        "value": 4,
-        "label": "test output \u2192 execute (step 1)"
-      },
-      {
-        "source": 14,
-        "target": 0,
-        "value": 6,
-        "label": "test pass \u2192 execute (step 1)"
-      },
-      {
-        "source": 14,
-        "target": 4,
-        "value": 1,
-        "label": "test pass \u2192 finalize (step 1)"
+        "label": "edit \u2192 finalize (step 1)"
       }
     ]
   },
@@ -76220,22 +76105,22 @@ total=${prompt.total_tokens}</pre>
       wireStepClicks('harness-loop');
     }
 
-    function buildFeedbackFollowThrough() {
-      const graph = dashboardData.feedback_follow_through;
+    function buildEditFollowThrough() {
+      const graph = dashboardData.edit_follow_through;
       if (!graph.nodes.length || !graph.links.length) {
-        document.getElementById('feedback-follow-through').innerHTML = '<div style="padding:24px;color:#9aa6d1;">Not enough follow-through after observable feedback yet.</div>';
+        document.getElementById('edit-follow-through').innerHTML = '<div style="padding:24px;color:#9aa6d1;">Not enough edit follow-through yet to show what happened after edits.</div>';
         return;
       }
       const stagePositions = { 0: 0.01, 1: 0.34, 2: 0.67, 3: 0.99 };
-      Plotly.newPlot('feedback-follow-through', [{
+      Plotly.newPlot('edit-follow-through', [{
         type: 'sankey',
         arrangement: 'snap',
         node: {
           pad: 18,
           thickness: 18,
           line: { color: '#2b3355', width: 1 },
-          label: graph.nodes.map((node) => node.label),
-          color: graph.nodes.map((node) => node.kind === 'feedback' ? '#4C78A8' : (dashboardData.action_palette[node.label] || '#F58518')),
+          label: graph.nodes.map((node) => node.stage_label || node.label),
+          color: graph.nodes.map((node) => dashboardData.action_palette[node.label] || '#F58518'),
           x: graph.nodes.map((node) => stagePositions[node.stage] ?? 0.99),
         },
         link: {
@@ -76541,7 +76426,7 @@ total=${prompt.total_tokens}</pre>
     buildLaneSummary();
     buildLaneHandoffs();
     buildFeedbackNextAction();
-    buildFeedbackFollowThrough();
+    buildEditFollowThrough();
     buildTimeline();
     buildPromptComposition();
     buildControlTimeline();
