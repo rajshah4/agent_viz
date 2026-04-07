@@ -2,217 +2,189 @@
 
 Visual analytics for understanding how coding agents behave on long-running tasks.
 
-## Goal
+**Live gallery:** https://rajshah4.github.io/agent_viz/  
+**Reading guide:** [`docs/dashboard_reading_guide.md`](./docs/dashboard_reading_guide.md)  
+**Product framing:** [`docs/product_thesis.md`](./docs/product_thesis.md)
 
-`agent_viz` is a small workspace for turning agent traces into visuals that explain what happened during a run, where time and tokens went, and whether the agent was making progress or just replaying state.
+`agent_viz` turns agent traces into compact visual explanations of what happened during a run, where time and tokens went, and whether the run was converging or just getting heavier.
 
-The immediate use case is analyzing traces like Laminar eval traces and similar trajectories from OpenHands Index or older SWE-bench-style runs.
+The immediate focus is shared Laminar traces and similar coding-agent trajectories, but the product goal is broader: make long agent runs legible to humans.
 
-## Core questions
+## What these dashboards are for
 
-- Was a run mostly reading, reasoning, editing, testing, retrying, or waiting?
-- How much context was newly acquired versus replayed from earlier steps?
+The dashboards are designed to answer questions like:
+
+- Was the run mostly reading, editing, testing, retrying, or waiting?
 - How quickly did the agent localize the right files?
-- How many edits and tests happened before the first plausible fix?
-- When do tokens keep increasing without corresponding progress?
+- Did failing tests lead to productive repair or more wandering?
+- Did passing tests actually end the run?
+- Was prompt growth driven by fresh context or by carry-forward?
+- How much of the trajectory was real repo work versus harness or runtime overhead?
 
-## Initial dashboard ideas
+## Visualization highlights
 
-1. **Run timeline / stacked ribbon**
-   - read / inspect
-   - plan / reason
-   - edit / patch
-   - test / execute
-   - retry / recover
-   - idle / wait / tool overhead
+### Behavior and burden summary
 
-2. **Prompt composition per step**
-   - new task info
-   - retrieved repo or tool context
-   - replayed prior context
-   - cached prefix
-   - injected tool output
+A compact front page for the run:
 
-3. **Progress charts**
-   - files read before first edit
-   - edits before first passing test
-   - tests run over time
-   - pass rate over time
-   - unique files touched over time
+- duration, tokens, and carry-forward ratio
+- files before first edit
+- edits before first pass
+- tests before first pass
+- tests after first pass
+- max retry burst
 
-4. **Cross-run comparison views**
-   - per-step heatmap across many runs
-   - success vs total tokens scatter plot
-   - localization and verification efficiency summaries
+This is the quickest way to tell whether a run looks efficient, expensive, or churn-heavy.
 
-## Current scaffold
+### Harness lane occupancy
 
-- `pyproject.toml` — lightweight Python package config
-- `src/agent_viz/models.py` — normalized events, prompt composition, run summary models
-- `src/agent_viz/metrics.py` — run summarization and file-transition utilities
-- `src/agent_viz/laminar.py` — first-pass Laminar shared trace parser
-- `src/agent_viz/laminar_loader.py` — fetch shared Laminar traces from trace IDs or URLs
-- `src/agent_viz/comparison.py` — multi-run comparison data builder and HTML renderer
-- `src/agent_viz/dashboard.py` — single-run dashboard data builder and HTML renderer
-- `src/agent_viz/render_compare.py` — CLI for rendering multi-run comparisons from Laminar references
-- `src/agent_viz/render_laminar.py` — CLI for rendering dashboards from Laminar references
-- `examples/laminar_shared_trace.json` — example Laminar-style trace payload
-- `examples/render_example_dashboard.py` — helper script to render the example dashboard
-- `tests/test_metrics.py` — metric unit coverage
-- `tests/test_laminar_parser.py` — Laminar parsing coverage
-- `tests/test_laminar_loader.py` — shared URL and fetch-flow coverage
-- `tests/test_dashboard.py` — dashboard data and rendering coverage
-- `docs/dashboard_spec.md` — compact dashboard and metrics spec
-- `docs/dashboard_reading_guide.md` — how to read each dashboard view and what it can reveal
-- `docs/product_thesis.md` — what to borrow from trace viewers and what to avoid copying
-- `docs/laminar_parser.md` — parser assumptions, scope, and observed fields
-- `AGENTS.md` — repository memory and working conventions
+A wall-clock view of which layer held the run over time:
 
-## Current parser entry points
+- `controller`
+- `model`
+- `workspace`
+- `runtime`
 
-- `parse_laminar_trace_payload(payload)`
-- `parse_laminar_trace_responses(trace_response, spans_response)`
+This makes it easy to see whether the run was dominated by prompting, repo work, orchestration churn, or hidden overhead.
 
-The parser currently targets shared Laminar trace data and converts spans into `NormalizedEvent` records using heuristics for action type, event type, file touches, tests, and prompt composition.
+### Lane summary and handoffs
 
-## Current dashboard entry points
+A compressed summary of the lane view, plus a Sankey showing how control moved between layers.
 
-- `build_single_run_dashboard_data(events)`
-- `render_single_run_dashboard(events, output_path, title=None)`
+Useful for spotting:
 
-The single-run dashboard now renders a standalone HTML file with teaching-oriented harness views:
+- many short controller bursts
+- long workspace bursts of focused repo work
+- long model bursts from repeated or heavy LLM calls
+- runtime activity that is larger than expected
 
-1. behavior and burden summary, with direct lower-is-better counts
-2. search / edit / verify burden bar chart
-3. harness lane occupancy over wall-clock time
-4. lane summary and layer-to-layer handoffs
-5. feedback → next meaningful move heatmap
-6. all anchors overview Sankey
-7. selected-anchor follow-through Sankey
-8. run timeline by action type
-9. normalized prompt makeup per LLM call
-10. control-event timeline
-11. step anatomy inspector
-12. cumulative progress lines
-13. top-file transition Sankey graph
+### Feedback to next meaningful move heatmap
 
-For a prose guide to what these charts mean and what they are useful for, see [`docs/dashboard_reading_guide.md`](./docs/dashboard_reading_guide.md).
+A dense view of what happened after each feedback category, using collapsed outcome labels instead of raw `execute`.
 
-To render the included example dashboard:
+Typical columns include:
 
-```bash
-cd /Users/rajiv.shah/Code/agent_viz
-python3 examples/render_example_dashboard.py
-```
+- `edit`
+- `file content`
+- `test failure`
+- `test pass`
+- `shell output`
+- `shell error`
+- `retry`
+- `wait`
+- `finalize`
 
-You can also pass a custom output path:
+This helps show whether failures lead to repair, whether reads lead to edits, and whether success usually ends the run.
 
-```bash
-python3 examples/render_example_dashboard.py /tmp/agent_viz_dashboard.html
-```
+### Anchor flow views
 
-## Render directly from a Laminar URL
+Two related Sankey views explain post-action behavior:
 
-Supported inputs:
+- **All anchors overview** - one dense combined map across `inspect`, `edit`, `test failure`, and `test pass`
+- **Selected anchor: next two meaningful moves** - a cleaner selector-based view for one anchor at a time
 
-- shared trace URL: `https://laminar.sh/shared/traces/<trace_id>`
-- shared eval URL with `traceId=...`
-- raw trace ID
+These views collapse routine execution into visible outcomes so the flow emphasizes what the agent learned or did next.
 
-Example using the trace URL you shared:
+### Prompt makeup per LLM call
 
-```bash
-cd /Users/rajiv.shah/Code/agent_viz
-PYTHONPATH=src python3 -m agent_viz.render_laminar 'https://laminar.sh/shared/evals/c97e4a45-8a14-428f-8eac-f77ef6eb75a8?traceId=537db26f-50c3-7350-1a28-dfdf1a349f66&datapointId=5ccd7459-f332-4234-9e74-08946800a41c&spanId=00000000-0000-0000-67ef-a3041a16198b' -o /tmp/laminar_trace_live.html
-```
+A normalized stacked bar chart showing whether each prompt was mostly:
 
-If installed as a package, you can also use:
+- fresh task ask
+- fresh repo/tool context
+- replayed prior context
+- cached prefix reuse
+- tool output added
 
-```bash
-agent-viz-laminar '<laminar_reference>' -o /tmp/laminar_trace_live.html
-```
+This is useful for seeing when prompts stop getting smarter and start getting heavier.
 
-The Laminar loader now hydrates detailed LLM and action spans when available, which improves:
+### File transition graph and cumulative progress
 
-- file path extraction for `FileEditorAction`
-- test-run detection and pass/fail parsing for `TerminalAction`
-- prompt carry-forward attribution from hydrated LLM message history
-- the single-run dashboard now shows both `wall-clock duration` (first observed start to last observed end) and `summed event duration` (sum of step durations), since nested or overlapping spans can make the latter larger than the former
+Together these show whether the run narrowed onto a small file cluster and whether growing token spend translated into visible progress.
 
-- separation of internal Laminar/OpenHands persistence activity into an `overhead` action bucket
+Useful for spotting:
 
+- search-heavy wandering
+- concentrated repair around a small module cluster
+- verification churn after a plausible fix already exists
+- token growth without corresponding tests passed or convergence
 
-## Included generated dashboards
+## What a good run versus a bad run often looks like
 
-This repo also includes committed HTML artifacts you can open directly from the repository:
+### Productive repair loop
 
+Common signs:
+
+- low files-before-first-edit
+- `test failure` to `edit` is prominent
+- `test pass` to `finalize` is visible
+- workspace activity dominates more than controller churn
+
+### Search-heavy wandering
+
+Common signs:
+
+- high files-before-first-edit
+- repeated `file content` to `file content`
+- broad file transitions instead of a tight cluster
+- unique files touched rises while progress stays flat
+
+### Verification churn
+
+Common signs:
+
+- many tests before or after first pass
+- post-edit flows keep returning to `test failure`
+- workspace bursts stay large while progress is flat
+
+### Harness or runtime overhead
+
+Common signs:
+
+- controller or runtime lanes consume a surprising share of time
+- burst count is high in controller
+- retries, waits, or persistence activity are unusually visible
+
+## Open the dashboards
+
+### GitHub Pages gallery
+
+- Gallery landing page: https://rajshah4.github.io/agent_viz/
+- Curated comparison view: [`agent_viz_compare_four_live.html`](./agent_viz_compare_four_live.html)
 - Single trace: [`laminar_trace_39f38cb4.html`](./laminar_trace_39f38cb4.html)
 - Single trace: [`laminar_trace_537db26f.html`](./laminar_trace_537db26f.html)
 - Single trace: [`laminar_trace_67ade002.html`](./laminar_trace_67ade002.html)
 - Single trace: [`laminar_trace_9c186814.html`](./laminar_trace_9c186814.html)
-- Comparison view: [`agent_viz_compare.html`](./agent_viz_compare.html)
-- Comparison view (two live traces): [`agent_viz_compare_two_live.html`](./agent_viz_compare_two_live.html)
-- Comparison view (four live traces): [`agent_viz_compare_four_live.html`](./agent_viz_compare_four_live.html)
 
-## GitHub Pages showcase
+## Learn how to read the charts
 
-A minimal GitHub Pages setup is included for showing off a curated set of standalone dashboards.
+- [`docs/dashboard_reading_guide.md`](./docs/dashboard_reading_guide.md) - chart-by-chart explanation and interpretation tips
+- [`docs/dashboard_spec.md`](./docs/dashboard_spec.md) - compact dashboard and metric spec
+- [`docs/product_thesis.md`](./docs/product_thesis.md) - what this should borrow from trace viewers and what it should avoid
+- [`docs/laminar_parser.md`](./docs/laminar_parser.md) - Laminar parser scope, assumptions, and observed fields
 
-- landing page: [`index.html`](./index.html)
-- deployment workflow: [`.github/workflows/deploy-pages.yml`](./.github/workflows/deploy-pages.yml)
-- published URL after enabling Pages: `https://rajshah4.github.io/agent_viz/`
+## Project layout
 
-How it works:
+- `src/agent_viz/dashboard.py` - single-run dashboard data builder and HTML renderer
+- `src/agent_viz/comparison.py` - multi-run comparison data builder and HTML renderer
+- `src/agent_viz/laminar.py` - Laminar trace parsing into normalized events
+- `src/agent_viz/laminar_loader.py` - fetch shared Laminar traces from IDs or URLs
+- `src/agent_viz/metrics.py` - run summaries, burden metrics, and file transitions
+- `tests/test_dashboard.py` - dashboard data and rendering coverage
 
-1. `index.html` is a simple hand-written gallery page.
-2. The Pages workflow copies that file plus the selected dashboard HTML files into the deployment artifact.
-3. To swap which traces are showcased, update the links in `index.html` and the `cp` list in `.github/workflows/deploy-pages.yml`.
-4. In GitHub repository settings, set **Pages** to deploy from **GitHub Actions**.
+## Local rendering, if you want it
 
+The README is intentionally showcase-first, but local rendering is straightforward when needed.
 
+Render a single Laminar reference:
 
-## Compare multiple runs
+```bash
+cd /Users/rajiv.shah/Code/agent_viz
+PYTHONPATH=src python3 -m agent_viz.render_laminar '<laminar_reference>' -o /tmp/agent_viz_single.html
+```
 
-You can also render a lightweight comparison dashboard across multiple Laminar references:
+Render a comparison dashboard:
 
 ```bash
 cd /Users/rajiv.shah/Code/agent_viz
 PYTHONPATH=src python3 -m agent_viz.render_compare '<laminar_ref_1>' '<laminar_ref_2>' -o /tmp/agent_viz_compare.html
 ```
-
-If installed as a package:
-
-```bash
-agent-viz-compare '<laminar_ref_1>' '<laminar_ref_2>' -o /tmp/agent_viz_compare.html
-```
-
-The comparison view currently includes:
-
-- success vs token spend, with output tokens plus search/test burden details in hover tooltips
-- normalized action mix per run
-- visible action mix per run, excluding overhead
-- overhead breakdown per run (for example, LocalFileStore lookups vs writes)
-- search burden vs test burden scatter
-- direct burden bars for files before first edit, edits before first pass, tests before first pass, tests after first pass, and retry bursts
-- top modules / top files snapshots for each run
-- compact run summary table for same-harness comparisons
-- on-page glossary definitions for files before first edit, edits before first pass, tests before first pass, tests after first pass, max retry burst, and carry-forward ratio
-
-## Likely next steps
-
-1. Improve Laminar field extraction against more real shared traces and SDK variants.
-2. Add clearer repair-quality metrics beyond the current search and verification burden counts.
-3. Add small multiples and heatmaps for comparing many runs.
-4. Add stronger controller-state metrics such as retries-to-success, finish attempts, and stop-condition markers.
-
-## First-pass action taxonomy
-
-- `inspect`
-- `plan`
-- `edit`
-- `execute`
-- `retry`
-- `wait`
-- `finalize`
-
-This taxonomy can be refined later as real trace data is sampled.
