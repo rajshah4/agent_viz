@@ -78,6 +78,11 @@
         </section>
       </div>
       <section class="panel">
+        <h2>Feedback follow-through (3 steps)</h2>
+        <p>How those same observations played out over the next three material actions, skipping plan and overhead so you can see whether feedback actually led toward inspect, edit, execute, retry, wait, or finalize.</p>
+        <div id="feedback-follow-through" class="chart short"></div>
+      </section>
+      <section class="panel">
         <h2>Lane summary and handoffs</h2>
         <p>Observed active time, burst lengths, and layer-to-layer handoffs. Active-time shares are relative to full run time and can overlap when layers were active concurrently.</p>
         <h3 style="margin:0 0 8px;font-size:15px;color:#edf1ff;">How lane timing works</h3>
@@ -75586,6 +75591,249 @@
       }
     ]
   },
+  "feedback_follow_through": {
+    "nodes": [
+      {
+        "id": "action:1:execute",
+        "label": "execute",
+        "kind": "action",
+        "stage": 1,
+        "stage_label": "execute (step 1)"
+      },
+      {
+        "id": "action:2:edit",
+        "label": "edit",
+        "kind": "action",
+        "stage": 2,
+        "stage_label": "edit (step 2)"
+      },
+      {
+        "id": "action:2:execute",
+        "label": "execute",
+        "kind": "action",
+        "stage": 2,
+        "stage_label": "execute (step 2)"
+      },
+      {
+        "id": "action:2:inspect",
+        "label": "inspect",
+        "kind": "action",
+        "stage": 2,
+        "stage_label": "inspect (step 2)"
+      },
+      {
+        "id": "action:1:finalize",
+        "label": "finalize",
+        "kind": "action",
+        "stage": 1,
+        "stage_label": "finalize (step 1)"
+      },
+      {
+        "id": "action:3:execute",
+        "label": "execute",
+        "kind": "action",
+        "stage": 3,
+        "stage_label": "execute (step 3)"
+      },
+      {
+        "id": "action:3:finalize",
+        "label": "finalize",
+        "kind": "action",
+        "stage": 3,
+        "stage_label": "finalize (step 3)"
+      },
+      {
+        "id": "action:3:edit",
+        "label": "edit",
+        "kind": "action",
+        "stage": 3,
+        "stage_label": "edit (step 3)"
+      },
+      {
+        "id": "feedback:0:controller update",
+        "label": "controller update",
+        "kind": "feedback",
+        "stage": 0,
+        "stage_label": "controller update"
+      },
+      {
+        "id": "feedback:0:edit result",
+        "label": "edit result",
+        "kind": "feedback",
+        "stage": 0,
+        "stage_label": "edit result"
+      },
+      {
+        "id": "feedback:0:file content",
+        "label": "file content",
+        "kind": "feedback",
+        "stage": 0,
+        "stage_label": "file content"
+      },
+      {
+        "id": "feedback:0:repo listing",
+        "label": "repo listing",
+        "kind": "feedback",
+        "stage": 0,
+        "stage_label": "repo listing"
+      },
+      {
+        "id": "feedback:0:test failure",
+        "label": "test failure",
+        "kind": "feedback",
+        "stage": 0,
+        "stage_label": "test failure"
+      },
+      {
+        "id": "feedback:0:test output",
+        "label": "test output",
+        "kind": "feedback",
+        "stage": 0,
+        "stage_label": "test output"
+      },
+      {
+        "id": "feedback:0:test pass",
+        "label": "test pass",
+        "kind": "feedback",
+        "stage": 0,
+        "stage_label": "test pass"
+      }
+    ],
+    "links": [
+      {
+        "source": 0,
+        "target": 1,
+        "value": 51,
+        "label": "execute (step 1) \u2192 edit (step 2)"
+      },
+      {
+        "source": 0,
+        "target": 2,
+        "value": 27,
+        "label": "execute (step 1) \u2192 execute (step 2)"
+      },
+      {
+        "source": 0,
+        "target": 3,
+        "value": 41,
+        "label": "execute (step 1) \u2192 inspect (step 2)"
+      },
+      {
+        "source": 4,
+        "target": 2,
+        "value": 6,
+        "label": "finalize (step 1) \u2192 execute (step 2)"
+      },
+      {
+        "source": 1,
+        "target": 5,
+        "value": 50,
+        "label": "edit (step 2) \u2192 execute (step 3)"
+      },
+      {
+        "source": 1,
+        "target": 6,
+        "value": 1,
+        "label": "edit (step 2) \u2192 finalize (step 3)"
+      },
+      {
+        "source": 2,
+        "target": 7,
+        "value": 3,
+        "label": "execute (step 2) \u2192 edit (step 3)"
+      },
+      {
+        "source": 2,
+        "target": 5,
+        "value": 26,
+        "label": "execute (step 2) \u2192 execute (step 3)"
+      },
+      {
+        "source": 2,
+        "target": 6,
+        "value": 4,
+        "label": "execute (step 2) \u2192 finalize (step 3)"
+      },
+      {
+        "source": 3,
+        "target": 5,
+        "value": 39,
+        "label": "inspect (step 2) \u2192 execute (step 3)"
+      },
+      {
+        "source": 3,
+        "target": 6,
+        "value": 2,
+        "label": "inspect (step 2) \u2192 finalize (step 3)"
+      },
+      {
+        "source": 8,
+        "target": 0,
+        "value": 2,
+        "label": "controller update \u2192 execute (step 1)"
+      },
+      {
+        "source": 9,
+        "target": 0,
+        "value": 51,
+        "label": "edit result \u2192 execute (step 1)"
+      },
+      {
+        "source": 9,
+        "target": 4,
+        "value": 1,
+        "label": "edit result \u2192 finalize (step 1)"
+      },
+      {
+        "source": 10,
+        "target": 0,
+        "value": 34,
+        "label": "file content \u2192 execute (step 1)"
+      },
+      {
+        "source": 10,
+        "target": 4,
+        "value": 3,
+        "label": "file content \u2192 finalize (step 1)"
+      },
+      {
+        "source": 11,
+        "target": 0,
+        "value": 8,
+        "label": "repo listing \u2192 execute (step 1)"
+      },
+      {
+        "source": 12,
+        "target": 0,
+        "value": 14,
+        "label": "test failure \u2192 execute (step 1)"
+      },
+      {
+        "source": 12,
+        "target": 4,
+        "value": 1,
+        "label": "test failure \u2192 finalize (step 1)"
+      },
+      {
+        "source": 13,
+        "target": 0,
+        "value": 4,
+        "label": "test output \u2192 execute (step 1)"
+      },
+      {
+        "source": 14,
+        "target": 0,
+        "value": 6,
+        "label": "test pass \u2192 execute (step 1)"
+      },
+      {
+        "source": 14,
+        "target": 4,
+        "value": 1,
+        "label": "test pass \u2192 finalize (step 1)"
+      }
+    ]
+  },
   "file_transitions": {
     "nodes": [
       {
@@ -75972,6 +76220,41 @@ total=${prompt.total_tokens}</pre>
       wireStepClicks('harness-loop');
     }
 
+    function buildFeedbackFollowThrough() {
+      const graph = dashboardData.feedback_follow_through;
+      if (!graph.nodes.length || !graph.links.length) {
+        document.getElementById('feedback-follow-through').innerHTML = '<div style="padding:24px;color:#9aa6d1;">Not enough follow-through after observable feedback yet.</div>';
+        return;
+      }
+      const stagePositions = { 0: 0.01, 1: 0.34, 2: 0.67, 3: 0.99 };
+      Plotly.newPlot('feedback-follow-through', [{
+        type: 'sankey',
+        arrangement: 'snap',
+        node: {
+          pad: 18,
+          thickness: 18,
+          line: { color: '#2b3355', width: 1 },
+          label: graph.nodes.map((node) => node.label),
+          color: graph.nodes.map((node) => node.kind === 'feedback' ? '#4C78A8' : (dashboardData.action_palette[node.label] || '#F58518')),
+          x: graph.nodes.map((node) => stagePositions[node.stage] ?? 0.99),
+        },
+        link: {
+          source: graph.links.map((link) => link.source),
+          target: graph.links.map((link) => link.target),
+          value: graph.links.map((link) => link.value),
+          label: graph.links.map((link) => link.label),
+          hovertemplate: '<b>%{label}</b><br>count=%{value}<extra></extra>',
+          color: 'rgba(114,183,178,0.45)',
+        },
+      }], {
+        paper_bgcolor: 'rgba(0,0,0,0)',
+        plot_bgcolor: 'rgba(0,0,0,0)',
+        font: { color: '#edf1ff' },
+        margin: { l: 16, r: 16, t: 16, b: 16 },
+      }, { responsive: true });
+    }
+
+
     function buildLaneSummary() {
       const rows = dashboardData.lane_summary;
       const host = document.getElementById('lane-summary');
@@ -76258,6 +76541,7 @@ total=${prompt.total_tokens}</pre>
     buildLaneSummary();
     buildLaneHandoffs();
     buildFeedbackNextAction();
+    buildFeedbackFollowThrough();
     buildTimeline();
     buildPromptComposition();
     buildControlTimeline();

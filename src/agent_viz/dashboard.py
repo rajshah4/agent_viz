@@ -230,6 +230,7 @@ def build_single_run_dashboard_data(events: list[NormalizedEvent]) -> dict[str, 
     filtered_transitions = _filter_top_file_transitions(transitions, file_touch_counts, max_files=8)
     transition_graph = _build_transition_graph(filtered_transitions)
     feedback_graph = _build_feedback_action_graph(ordered_events)
+    feedback_follow_through_graph = _build_feedback_follow_through_graph(ordered_events)
     lane_occupancy_rows, lane_summary_rows, lane_handoff_graph = _build_lane_views(
         timeline_rows,
         total_run_duration_ms=summary.wall_clock_duration_ms,
@@ -303,6 +304,7 @@ def build_single_run_dashboard_data(events: list[NormalizedEvent]) -> dict[str, 
         "prompt_composition": prompt_rows,
         "cumulative_progress": cumulative_rows,
         "feedback_next_action": feedback_graph,
+        "feedback_follow_through": feedback_follow_through_graph,
         "file_transitions": transition_graph,
         "burden_metrics": burden_rows,
         "action_counts": dict(action_counts),
@@ -410,10 +412,10 @@ def _build_feedback_action_graph(events: list[NormalizedEvent]) -> dict[str, lis
         feedback_category = _feedback_category(event)
         if not feedback_category:
             continue
-        next_action = _next_visible_action(ordered_events, start_index=index + 1)
-        if not next_action:
+        next_actions = _next_visible_actions(ordered_events, start_index=index + 1, limit=1)
+        if not next_actions:
             continue
-        transitions[(feedback_category, next_action)] += 1
+        transitions[(feedback_category, next_actions[0])] += 1
 
     node_index: dict[str, int] = {}
     nodes: list[dict[str, Any]] = []
@@ -437,6 +439,67 @@ def _build_feedback_action_graph(events: list[NormalizedEvent]) -> dict[str, lis
         )
 
     return {"nodes": nodes, "links": links}
+
+
+def _build_feedback_follow_through_graph(
+    events: list[NormalizedEvent],
+    *,
+    steps: int = 3,
+) -> dict[str, list[dict[str, Any]]]:
+    transitions: Counter[tuple[tuple[str, int, str], tuple[str, int, str]]] = Counter()
+    ordered_events = _ordered_events(events)
+    for index, event in enumerate(ordered_events[:-1]):
+        feedback_category = _feedback_category(event)
+        if not feedback_category:
+            continue
+        follow_through = _next_visible_actions(ordered_events, start_index=index + 1, limit=steps)
+        if not follow_through:
+            continue
+
+        path = [("feedback", 0, feedback_category)]
+        path.extend(("action", step_index, action) for step_index, action in enumerate(follow_through, start=1))
+        for source_node, target_node in zip(path, path[1:]):
+            transitions[(source_node, target_node)] += 1
+
+    node_index: dict[str, int] = {}
+    nodes: list[dict[str, Any]] = []
+    links: list[dict[str, Any]] = []
+
+    def get_index(label: str, kind: str, stage: int) -> int:
+        key = f"{kind}:{stage}:{label}"
+        if key not in node_index:
+            node_index[key] = len(nodes)
+            nodes.append({
+                "id": key,
+                "label": label,
+                "kind": kind,
+                "stage": stage,
+                "stage_label": _feedback_follow_through_label(label, kind, stage),
+            })
+        return node_index[key]
+
+    for (source_node, target_node), weight in sorted(transitions.items()):
+        source_kind, source_stage, source_label = source_node
+        target_kind, target_stage, target_label = target_node
+        links.append(
+            {
+                "source": get_index(source_label, source_kind, source_stage),
+                "target": get_index(target_label, target_kind, target_stage),
+                "value": weight,
+                "label": (
+                    f"{_feedback_follow_through_label(source_label, source_kind, source_stage)} → "
+                    f"{_feedback_follow_through_label(target_label, target_kind, target_stage)}"
+                ),
+            }
+        )
+
+    return {"nodes": nodes, "links": links}
+
+
+def _feedback_follow_through_label(label: str, kind: str, stage: int) -> str:
+    if kind == "feedback":
+        return label
+    return f"{label} (step {stage})"
 
 
 def _build_lane_views(
@@ -551,12 +614,15 @@ def _build_simple_sankey(
     return {"nodes": nodes, "links": links}
 
 
-def _next_visible_action(events: list[NormalizedEvent], *, start_index: int) -> str | None:
+def _next_visible_actions(events: list[NormalizedEvent], *, start_index: int, limit: int) -> list[str]:
+    actions: list[str] = []
     for event in events[start_index:]:
         if event.action_type in {ActionType.OVERHEAD, ActionType.PLAN}:
             continue
-        return event.action_type.value
-    return None
+        actions.append(event.action_type.value)
+        if len(actions) >= limit:
+            break
+    return actions
 
 
 def _event_lane(event: NormalizedEvent) -> str:
@@ -576,14 +642,14 @@ def _event_lane(event: NormalizedEvent) -> str:
 def _feedback_category(event: NormalizedEvent) -> str | None:
     if event.action_type == ActionType.OVERHEAD or event.event_type == EventType.LLM_CALL:
         return None
-    if event.status in {StepStatus.ERROR, StepStatus.TIMEOUT, StepStatus.INTERRUPTED}:
-        return "tool error"
     if event.event_type == EventType.TEST_RUN:
         if event.tests_failed:
             return "test failure"
         if event.tests_passed and not event.tests_failed:
             return "test pass"
         return "test output"
+    if event.status in {StepStatus.ERROR, StepStatus.TIMEOUT, StepStatus.INTERRUPTED}:
+        return "tool error"
     if event.event_type == EventType.FILE_READ:
         return "repo listing" if any(_is_directory_like(path) for path in event.touched_files) else "file content"
     if event.event_type == EventType.FILE_EDIT:
@@ -816,6 +882,11 @@ def _build_dashboard_html(dashboard_data: dict[str, Any], *, title: str | None) 
         </section>
       </div>
       <section class=\"panel\">
+        <h2>Feedback follow-through (3 steps)</h2>
+        <p>How those same observations played out over the next three material actions, skipping plan and overhead so you can see whether feedback actually led toward inspect, edit, execute, retry, wait, or finalize.</p>
+        <div id=\"feedback-follow-through\" class=\"chart short\"></div>
+      </section>
+      <section class=\"panel\">
         <h2>Lane summary and handoffs</h2>
         <p>Observed active time, burst lengths, and layer-to-layer handoffs. Active-time shares are relative to full run time and can overlap when layers were active concurrently.</p>
         <h3 style=\"margin:0 0 8px;font-size:15px;color:#edf1ff;\">How lane timing works</h3>
@@ -1019,6 +1090,41 @@ def _build_dashboard_html(dashboard_data: dict[str, Any], *, title: str | None) 
       }, { responsive: true });
       wireStepClicks('harness-loop');
     }
+
+    function buildFeedbackFollowThrough() {
+      const graph = dashboardData.feedback_follow_through;
+      if (!graph.nodes.length || !graph.links.length) {
+        document.getElementById('feedback-follow-through').innerHTML = '<div style="padding:24px;color:#9aa6d1;">Not enough follow-through after observable feedback yet.</div>';
+        return;
+      }
+      const stagePositions = { 0: 0.01, 1: 0.34, 2: 0.67, 3: 0.99 };
+      Plotly.newPlot('feedback-follow-through', [{
+        type: 'sankey',
+        arrangement: 'snap',
+        node: {
+          pad: 18,
+          thickness: 18,
+          line: { color: '#2b3355', width: 1 },
+          label: graph.nodes.map((node) => node.label),
+          color: graph.nodes.map((node) => node.kind === 'feedback' ? '#4C78A8' : (dashboardData.action_palette[node.label] || '#F58518')),
+          x: graph.nodes.map((node) => stagePositions[node.stage] ?? 0.99),
+        },
+        link: {
+          source: graph.links.map((link) => link.source),
+          target: graph.links.map((link) => link.target),
+          value: graph.links.map((link) => link.value),
+          label: graph.links.map((link) => link.label),
+          hovertemplate: '<b>%{label}</b><br>count=%{value}<extra></extra>',
+          color: 'rgba(114,183,178,0.45)',
+        },
+      }], {
+        paper_bgcolor: 'rgba(0,0,0,0)',
+        plot_bgcolor: 'rgba(0,0,0,0)',
+        font: { color: '#edf1ff' },
+        margin: { l: 16, r: 16, t: 16, b: 16 },
+      }, { responsive: true });
+    }
+
 
     function buildLaneSummary() {
       const rows = dashboardData.lane_summary;
@@ -1306,6 +1412,7 @@ def _build_dashboard_html(dashboard_data: dict[str, Any], *, title: str | None) 
     buildLaneSummary();
     buildLaneHandoffs();
     buildFeedbackNextAction();
+    buildFeedbackFollowThrough();
     buildTimeline();
     buildPromptComposition();
     buildControlTimeline();
