@@ -149,6 +149,22 @@ This repo also includes committed HTML artifacts you can open directly from the 
 - Comparison view (two live traces): [`agent_viz_compare_two_live.html`](./agent_viz_compare_two_live.html)
 - Comparison view (four live traces): [`agent_viz_compare_four_live.html`](./agent_viz_compare_four_live.html)
 
+## GitHub Pages showcase
+
+A minimal GitHub Pages setup is included for showing off a curated set of standalone dashboards.
+
+- landing page: [`index.html`](./index.html)
+- deployment workflow: [`.github/workflows/deploy-pages.yml`](./.github/workflows/deploy-pages.yml)
+- published URL after enabling Pages: `https://rajshah4.github.io/agent_viz/`
+
+How it works:
+
+1. `index.html` is a simple hand-written gallery page.
+2. The Pages workflow copies that file plus the selected dashboard HTML files into the deployment artifact.
+3. To swap which traces are showcased, update the links in `index.html` and the `cp` list in `.github/workflows/deploy-pages.yml`.
+4. In GitHub repository settings, set **Pages** to deploy from **GitHub Actions**.
+
+
 
 ## Compare multiple runs
 
