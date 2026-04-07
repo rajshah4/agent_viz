@@ -72,16 +72,24 @@
           <div id="harness-loop" class="chart short"></div>
         </section>
         <section class="panel">
-          <h2>Feedback to next action</h2>
-          <p>How observations like file content or test failures route into the next chosen action.</p>
+          <h2>Feedback → next meaningful move heatmap</h2>
+          <p>Raw counts of what came after each feedback category once routine <code>execute</code> spans were collapsed into their observed outcomes. This keeps the heatmap aligned with the more legible categories like edit, file content, test failure, test pass, retry, wait, and finalize.</p>
           <div id="feedback-next-action" class="chart short"></div>
         </section>
       </div>
-      <section class="panel">
-        <h2>After edit, what happened next?</h2>
-        <p>Tracks the next three material actions after each edit, skipping plan and overhead so you can see edit → execute verification, edit → edit chaining, edit → inspect reconsideration, or edit → finalize conclusion attempts. Here, <code>finalize</code> means the run appeared to conclude, not necessarily the literal last raw event.</p>
-        <div id="edit-follow-through" class="chart short"></div>
-      </section>
+      <div class="grid two">
+        <section class="panel">
+          <h2>All anchors overview</h2>
+          <p>One dense Sankey combining inspect, edit, test failure, and test pass anchors in a single view. It is less readable than the selector, but useful for spotting the overall balance of branches across all anchor types at once.</p>
+          <div id="anchor-overview" class="chart short"></div>
+        </section>
+        <section class="panel">
+          <h2>Selected anchor: next two meaningful moves</h2>
+          <p>Choose a high-value anchor like inspect, edit, test failure, or test pass. The chart then shows the next two meaningful nodes after that anchor while skipping plan and overhead and collapsing routine <code>execute</code> steps into their observed outcomes. <code>finalize</code> is allowed as an endpoint, but not as a starting anchor.</p>
+          <select id="anchor-flow-selector" class="selector"></select>
+          <div id="anchor-follow-through" class="chart short"></div>
+        </section>
+      </div>
       <section class="panel">
         <h2>Lane summary and handoffs</h2>
         <p>Observed active time, burst lengths, and layer-to-layer handoffs. Active-time shares are relative to full run time and can overlap when layers were active concurrently.</p>
@@ -78960,252 +78968,1354 @@
       "cumulative_unique_files": 37
     }
   ],
-  "feedback_next_action": {
-    "nodes": [
-      {
-        "id": "feedback:edit result",
-        "label": "edit result",
-        "kind": "feedback"
-      },
-      {
-        "id": "action:execute",
-        "label": "execute",
-        "kind": "action"
-      },
-      {
-        "id": "action:finalize",
-        "label": "finalize",
-        "kind": "action"
-      },
-      {
-        "id": "feedback:file content",
-        "label": "file content",
-        "kind": "feedback"
-      },
-      {
-        "id": "feedback:repo listing",
-        "label": "repo listing",
-        "kind": "feedback"
-      },
-      {
-        "id": "feedback:test failure",
-        "label": "test failure",
-        "kind": "feedback"
-      },
-      {
-        "id": "feedback:test output",
-        "label": "test output",
-        "kind": "feedback"
-      },
-      {
-        "id": "feedback:test pass",
-        "label": "test pass",
-        "kind": "feedback"
-      }
+  "feedback_action_heatmap": {
+    "feedback_labels": [
+      "edit result",
+      "file content",
+      "test failure",
+      "test output",
+      "repo listing",
+      "test pass"
     ],
-    "links": [
-      {
-        "source": 0,
-        "target": 1,
-        "value": 36,
-        "label": "edit result \u2192 execute"
-      },
-      {
-        "source": 0,
-        "target": 2,
-        "value": 4,
-        "label": "edit result \u2192 finalize"
-      },
-      {
-        "source": 3,
-        "target": 1,
-        "value": 31,
-        "label": "file content \u2192 execute"
-      },
-      {
-        "source": 3,
-        "target": 2,
-        "value": 5,
-        "label": "file content \u2192 finalize"
-      },
-      {
-        "source": 4,
-        "target": 1,
-        "value": 8,
-        "label": "repo listing \u2192 execute"
-      },
-      {
-        "source": 4,
-        "target": 2,
-        "value": 4,
-        "label": "repo listing \u2192 finalize"
-      },
-      {
-        "source": 5,
-        "target": 1,
-        "value": 24,
-        "label": "test failure \u2192 execute"
-      },
-      {
-        "source": 5,
-        "target": 2,
-        "value": 2,
-        "label": "test failure \u2192 finalize"
-      },
-      {
-        "source": 6,
-        "target": 1,
-        "value": 15,
-        "label": "test output \u2192 execute"
-      },
-      {
-        "source": 7,
-        "target": 1,
-        "value": 4,
-        "label": "test pass \u2192 execute"
-      }
+    "action_labels": [
+      "edit",
+      "file content",
+      "repo listing",
+      "test failure",
+      "test pass",
+      "finalize",
+      "test output"
+    ],
+    "z": [
+      [
+        3,
+        5,
+        2,
+        18,
+        4,
+        4,
+        4
+      ],
+      [
+        16,
+        14,
+        0,
+        0,
+        0,
+        5,
+        1
+      ],
+      [
+        4,
+        5,
+        3,
+        4,
+        0,
+        2,
+        8
+      ],
+      [
+        7,
+        5,
+        1,
+        1,
+        0,
+        0,
+        1
+      ],
+      [
+        2,
+        3,
+        2,
+        0,
+        0,
+        4,
+        1
+      ],
+      [
+        0,
+        0,
+        1,
+        3,
+        0,
+        0,
+        0
+      ]
+    ],
+    "text": [
+      [
+        "3",
+        "5",
+        "2",
+        "18",
+        "4",
+        "4",
+        "4"
+      ],
+      [
+        "16",
+        "14",
+        "",
+        "",
+        "",
+        "5",
+        "1"
+      ],
+      [
+        "4",
+        "5",
+        "3",
+        "4",
+        "",
+        "2",
+        "8"
+      ],
+      [
+        "7",
+        "5",
+        "1",
+        "1",
+        "",
+        "",
+        "1"
+      ],
+      [
+        "2",
+        "3",
+        "2",
+        "",
+        "",
+        "4",
+        "1"
+      ],
+      [
+        "",
+        "",
+        "1",
+        "3",
+        "",
+        "",
+        ""
+      ]
     ]
   },
-  "edit_follow_through": {
-    "nodes": [
+  "anchor_follow_through": {
+    "default_anchor": "edit",
+    "options": [
       {
-        "id": "action:1:execute",
-        "label": "execute",
-        "kind": "action",
-        "stage": 1,
-        "stage_label": "execute (step 1)"
+        "key": "inspect",
+        "label": "After inspect",
+        "path_count": 46
       },
       {
-        "id": "action:2:edit",
-        "label": "edit",
-        "kind": "action",
-        "stage": 2,
-        "stage_label": "edit (step 2)"
+        "key": "edit",
+        "label": "After edit",
+        "path_count": 40
       },
       {
-        "id": "action:2:execute",
-        "label": "execute",
-        "kind": "action",
-        "stage": 2,
-        "stage_label": "execute (step 2)"
+        "key": "test_failure",
+        "label": "After test failure",
+        "path_count": 26
       },
       {
-        "id": "action:2:inspect",
-        "label": "inspect",
-        "kind": "action",
-        "stage": 2,
-        "stage_label": "inspect (step 2)"
-      },
-      {
-        "id": "action:1:finalize",
-        "label": "finalize",
-        "kind": "action",
-        "stage": 1,
-        "stage_label": "finalize (step 1)"
-      },
-      {
-        "id": "action:3:execute",
-        "label": "execute",
-        "kind": "action",
-        "stage": 3,
-        "stage_label": "execute (step 3)"
-      },
-      {
-        "id": "action:3:edit",
-        "label": "edit",
-        "kind": "action",
-        "stage": 3,
-        "stage_label": "edit (step 3)"
-      },
-      {
-        "id": "action:3:finalize",
-        "label": "finalize",
-        "kind": "action",
-        "stage": 3,
-        "stage_label": "finalize (step 3)"
-      },
-      {
-        "id": "anchor:0:edit",
-        "label": "edit",
-        "kind": "anchor",
-        "stage": 0,
-        "stage_label": "edit"
+        "key": "test_pass",
+        "label": "After test pass",
+        "path_count": 4
       }
     ],
-    "links": [
-      {
-        "source": 0,
-        "target": 1,
-        "value": 3,
-        "label": "execute (step 1) \u2192 edit (step 2)"
+    "graphs": {
+      "inspect": {
+        "nodes": [
+          {
+            "id": "anchor:0:inspect",
+            "label": "inspect",
+            "kind": "anchor",
+            "stage": 0,
+            "stage_label": "inspect"
+          },
+          {
+            "id": "step:1:edit",
+            "label": "edit",
+            "kind": "step",
+            "stage": 1,
+            "stage_label": "edit"
+          },
+          {
+            "id": "step:1:file content",
+            "label": "file content",
+            "kind": "step",
+            "stage": 1,
+            "stage_label": "file content"
+          },
+          {
+            "id": "step:1:finalize",
+            "label": "finalize",
+            "kind": "step",
+            "stage": 1,
+            "stage_label": "finalize"
+          },
+          {
+            "id": "step:1:repo listing",
+            "label": "repo listing",
+            "kind": "step",
+            "stage": 1,
+            "stage_label": "repo listing"
+          },
+          {
+            "id": "step:1:test output",
+            "label": "test output",
+            "kind": "step",
+            "stage": 1,
+            "stage_label": "test output"
+          },
+          {
+            "id": "step:2:edit",
+            "label": "edit",
+            "kind": "step",
+            "stage": 2,
+            "stage_label": "edit"
+          },
+          {
+            "id": "step:2:file content",
+            "label": "file content",
+            "kind": "step",
+            "stage": 2,
+            "stage_label": "file content"
+          },
+          {
+            "id": "step:2:finalize",
+            "label": "finalize",
+            "kind": "step",
+            "stage": 2,
+            "stage_label": "finalize"
+          },
+          {
+            "id": "step:2:repo listing",
+            "label": "repo listing",
+            "kind": "step",
+            "stage": 2,
+            "stage_label": "repo listing"
+          },
+          {
+            "id": "step:2:test failure",
+            "label": "test failure",
+            "kind": "step",
+            "stage": 2,
+            "stage_label": "test failure"
+          },
+          {
+            "id": "step:2:test output",
+            "label": "test output",
+            "kind": "step",
+            "stage": 2,
+            "stage_label": "test output"
+          },
+          {
+            "id": "step:2:test pass",
+            "label": "test pass",
+            "kind": "step",
+            "stage": 2,
+            "stage_label": "test pass"
+          }
+        ],
+        "links": [
+          {
+            "source": 0,
+            "target": 1,
+            "value": 17,
+            "label": "inspect \u2192 edit"
+          },
+          {
+            "source": 0,
+            "target": 2,
+            "value": 17,
+            "label": "inspect \u2192 file content"
+          },
+          {
+            "source": 0,
+            "target": 3,
+            "value": 8,
+            "label": "inspect \u2192 finalize"
+          },
+          {
+            "source": 0,
+            "target": 4,
+            "value": 2,
+            "label": "inspect \u2192 repo listing"
+          },
+          {
+            "source": 0,
+            "target": 5,
+            "value": 2,
+            "label": "inspect \u2192 test output"
+          },
+          {
+            "source": 1,
+            "target": 6,
+            "value": 1,
+            "label": "edit \u2192 edit"
+          },
+          {
+            "source": 1,
+            "target": 7,
+            "value": 3,
+            "label": "edit \u2192 file content"
+          },
+          {
+            "source": 1,
+            "target": 8,
+            "value": 1,
+            "label": "edit \u2192 finalize"
+          },
+          {
+            "source": 1,
+            "target": 9,
+            "value": 2,
+            "label": "edit \u2192 repo listing"
+          },
+          {
+            "source": 1,
+            "target": 10,
+            "value": 7,
+            "label": "edit \u2192 test failure"
+          },
+          {
+            "source": 1,
+            "target": 11,
+            "value": 2,
+            "label": "edit \u2192 test output"
+          },
+          {
+            "source": 1,
+            "target": 12,
+            "value": 1,
+            "label": "edit \u2192 test pass"
+          },
+          {
+            "source": 2,
+            "target": 6,
+            "value": 4,
+            "label": "file content \u2192 edit"
+          },
+          {
+            "source": 2,
+            "target": 7,
+            "value": 11,
+            "label": "file content \u2192 file content"
+          },
+          {
+            "source": 2,
+            "target": 8,
+            "value": 1,
+            "label": "file content \u2192 finalize"
+          },
+          {
+            "source": 2,
+            "target": 11,
+            "value": 1,
+            "label": "file content \u2192 test output"
+          },
+          {
+            "source": 4,
+            "target": 7,
+            "value": 1,
+            "label": "repo listing \u2192 file content"
+          },
+          {
+            "source": 4,
+            "target": 9,
+            "value": 1,
+            "label": "repo listing \u2192 repo listing"
+          },
+          {
+            "source": 5,
+            "target": 7,
+            "value": 1,
+            "label": "test output \u2192 file content"
+          },
+          {
+            "source": 5,
+            "target": 11,
+            "value": 1,
+            "label": "test output \u2192 test output"
+          }
+        ],
+        "path_count": 46
       },
-      {
-        "source": 0,
-        "target": 2,
-        "value": 26,
-        "label": "execute (step 1) \u2192 execute (step 2)"
+      "edit": {
+        "nodes": [
+          {
+            "id": "anchor:0:edit",
+            "label": "edit",
+            "kind": "anchor",
+            "stage": 0,
+            "stage_label": "edit"
+          },
+          {
+            "id": "step:1:edit",
+            "label": "edit",
+            "kind": "step",
+            "stage": 1,
+            "stage_label": "edit"
+          },
+          {
+            "id": "step:1:file content",
+            "label": "file content",
+            "kind": "step",
+            "stage": 1,
+            "stage_label": "file content"
+          },
+          {
+            "id": "step:1:finalize",
+            "label": "finalize",
+            "kind": "step",
+            "stage": 1,
+            "stage_label": "finalize"
+          },
+          {
+            "id": "step:1:repo listing",
+            "label": "repo listing",
+            "kind": "step",
+            "stage": 1,
+            "stage_label": "repo listing"
+          },
+          {
+            "id": "step:1:test failure",
+            "label": "test failure",
+            "kind": "step",
+            "stage": 1,
+            "stage_label": "test failure"
+          },
+          {
+            "id": "step:1:test output",
+            "label": "test output",
+            "kind": "step",
+            "stage": 1,
+            "stage_label": "test output"
+          },
+          {
+            "id": "step:1:test pass",
+            "label": "test pass",
+            "kind": "step",
+            "stage": 1,
+            "stage_label": "test pass"
+          },
+          {
+            "id": "step:2:file content",
+            "label": "file content",
+            "kind": "step",
+            "stage": 2,
+            "stage_label": "file content"
+          },
+          {
+            "id": "step:2:test failure",
+            "label": "test failure",
+            "kind": "step",
+            "stage": 2,
+            "stage_label": "test failure"
+          },
+          {
+            "id": "step:2:edit",
+            "label": "edit",
+            "kind": "step",
+            "stage": 2,
+            "stage_label": "edit"
+          },
+          {
+            "id": "step:2:finalize",
+            "label": "finalize",
+            "kind": "step",
+            "stage": 2,
+            "stage_label": "finalize"
+          },
+          {
+            "id": "step:2:repo listing",
+            "label": "repo listing",
+            "kind": "step",
+            "stage": 2,
+            "stage_label": "repo listing"
+          },
+          {
+            "id": "step:2:test output",
+            "label": "test output",
+            "kind": "step",
+            "stage": 2,
+            "stage_label": "test output"
+          }
+        ],
+        "links": [
+          {
+            "source": 0,
+            "target": 1,
+            "value": 3,
+            "label": "edit \u2192 edit"
+          },
+          {
+            "source": 0,
+            "target": 2,
+            "value": 5,
+            "label": "edit \u2192 file content"
+          },
+          {
+            "source": 0,
+            "target": 3,
+            "value": 4,
+            "label": "edit \u2192 finalize"
+          },
+          {
+            "source": 0,
+            "target": 4,
+            "value": 2,
+            "label": "edit \u2192 repo listing"
+          },
+          {
+            "source": 0,
+            "target": 5,
+            "value": 18,
+            "label": "edit \u2192 test failure"
+          },
+          {
+            "source": 0,
+            "target": 6,
+            "value": 4,
+            "label": "edit \u2192 test output"
+          },
+          {
+            "source": 0,
+            "target": 7,
+            "value": 4,
+            "label": "edit \u2192 test pass"
+          },
+          {
+            "source": 1,
+            "target": 8,
+            "value": 2,
+            "label": "edit \u2192 file content"
+          },
+          {
+            "source": 1,
+            "target": 9,
+            "value": 1,
+            "label": "edit \u2192 test failure"
+          },
+          {
+            "source": 2,
+            "target": 10,
+            "value": 2,
+            "label": "file content \u2192 edit"
+          },
+          {
+            "source": 2,
+            "target": 8,
+            "value": 2,
+            "label": "file content \u2192 file content"
+          },
+          {
+            "source": 2,
+            "target": 11,
+            "value": 1,
+            "label": "file content \u2192 finalize"
+          },
+          {
+            "source": 4,
+            "target": 10,
+            "value": 1,
+            "label": "repo listing \u2192 edit"
+          },
+          {
+            "source": 4,
+            "target": 8,
+            "value": 1,
+            "label": "repo listing \u2192 file content"
+          },
+          {
+            "source": 5,
+            "target": 10,
+            "value": 1,
+            "label": "test failure \u2192 edit"
+          },
+          {
+            "source": 5,
+            "target": 8,
+            "value": 3,
+            "label": "test failure \u2192 file content"
+          },
+          {
+            "source": 5,
+            "target": 11,
+            "value": 1,
+            "label": "test failure \u2192 finalize"
+          },
+          {
+            "source": 5,
+            "target": 12,
+            "value": 3,
+            "label": "test failure \u2192 repo listing"
+          },
+          {
+            "source": 5,
+            "target": 9,
+            "value": 4,
+            "label": "test failure \u2192 test failure"
+          },
+          {
+            "source": 5,
+            "target": 13,
+            "value": 6,
+            "label": "test failure \u2192 test output"
+          },
+          {
+            "source": 6,
+            "target": 10,
+            "value": 2,
+            "label": "test output \u2192 edit"
+          },
+          {
+            "source": 6,
+            "target": 12,
+            "value": 1,
+            "label": "test output \u2192 repo listing"
+          },
+          {
+            "source": 6,
+            "target": 9,
+            "value": 1,
+            "label": "test output \u2192 test failure"
+          },
+          {
+            "source": 7,
+            "target": 12,
+            "value": 1,
+            "label": "test pass \u2192 repo listing"
+          },
+          {
+            "source": 7,
+            "target": 9,
+            "value": 3,
+            "label": "test pass \u2192 test failure"
+          }
+        ],
+        "path_count": 40
       },
-      {
-        "source": 0,
-        "target": 3,
-        "value": 7,
-        "label": "execute (step 1) \u2192 inspect (step 2)"
+      "test_failure": {
+        "nodes": [
+          {
+            "id": "anchor:0:test failure",
+            "label": "test failure",
+            "kind": "anchor",
+            "stage": 0,
+            "stage_label": "test failure"
+          },
+          {
+            "id": "step:1:edit",
+            "label": "edit",
+            "kind": "step",
+            "stage": 1,
+            "stage_label": "edit"
+          },
+          {
+            "id": "step:1:file content",
+            "label": "file content",
+            "kind": "step",
+            "stage": 1,
+            "stage_label": "file content"
+          },
+          {
+            "id": "step:1:finalize",
+            "label": "finalize",
+            "kind": "step",
+            "stage": 1,
+            "stage_label": "finalize"
+          },
+          {
+            "id": "step:1:repo listing",
+            "label": "repo listing",
+            "kind": "step",
+            "stage": 1,
+            "stage_label": "repo listing"
+          },
+          {
+            "id": "step:1:test failure",
+            "label": "test failure",
+            "kind": "step",
+            "stage": 1,
+            "stage_label": "test failure"
+          },
+          {
+            "id": "step:1:test output",
+            "label": "test output",
+            "kind": "step",
+            "stage": 1,
+            "stage_label": "test output"
+          },
+          {
+            "id": "step:2:test failure",
+            "label": "test failure",
+            "kind": "step",
+            "stage": 2,
+            "stage_label": "test failure"
+          },
+          {
+            "id": "step:2:test pass",
+            "label": "test pass",
+            "kind": "step",
+            "stage": 2,
+            "stage_label": "test pass"
+          },
+          {
+            "id": "step:2:edit",
+            "label": "edit",
+            "kind": "step",
+            "stage": 2,
+            "stage_label": "edit"
+          },
+          {
+            "id": "step:2:file content",
+            "label": "file content",
+            "kind": "step",
+            "stage": 2,
+            "stage_label": "file content"
+          },
+          {
+            "id": "step:2:test output",
+            "label": "test output",
+            "kind": "step",
+            "stage": 2,
+            "stage_label": "test output"
+          },
+          {
+            "id": "step:2:finalize",
+            "label": "finalize",
+            "kind": "step",
+            "stage": 2,
+            "stage_label": "finalize"
+          }
+        ],
+        "links": [
+          {
+            "source": 0,
+            "target": 1,
+            "value": 4,
+            "label": "test failure \u2192 edit"
+          },
+          {
+            "source": 0,
+            "target": 2,
+            "value": 5,
+            "label": "test failure \u2192 file content"
+          },
+          {
+            "source": 0,
+            "target": 3,
+            "value": 2,
+            "label": "test failure \u2192 finalize"
+          },
+          {
+            "source": 0,
+            "target": 4,
+            "value": 3,
+            "label": "test failure \u2192 repo listing"
+          },
+          {
+            "source": 0,
+            "target": 5,
+            "value": 4,
+            "label": "test failure \u2192 test failure"
+          },
+          {
+            "source": 0,
+            "target": 6,
+            "value": 8,
+            "label": "test failure \u2192 test output"
+          },
+          {
+            "source": 1,
+            "target": 7,
+            "value": 2,
+            "label": "edit \u2192 test failure"
+          },
+          {
+            "source": 1,
+            "target": 8,
+            "value": 2,
+            "label": "edit \u2192 test pass"
+          },
+          {
+            "source": 2,
+            "target": 9,
+            "value": 4,
+            "label": "file content \u2192 edit"
+          },
+          {
+            "source": 2,
+            "target": 10,
+            "value": 1,
+            "label": "file content \u2192 file content"
+          },
+          {
+            "source": 4,
+            "target": 9,
+            "value": 1,
+            "label": "repo listing \u2192 edit"
+          },
+          {
+            "source": 4,
+            "target": 10,
+            "value": 1,
+            "label": "repo listing \u2192 file content"
+          },
+          {
+            "source": 4,
+            "target": 11,
+            "value": 1,
+            "label": "repo listing \u2192 test output"
+          },
+          {
+            "source": 5,
+            "target": 9,
+            "value": 1,
+            "label": "test failure \u2192 edit"
+          },
+          {
+            "source": 5,
+            "target": 10,
+            "value": 1,
+            "label": "test failure \u2192 file content"
+          },
+          {
+            "source": 5,
+            "target": 12,
+            "value": 1,
+            "label": "test failure \u2192 finalize"
+          },
+          {
+            "source": 5,
+            "target": 11,
+            "value": 1,
+            "label": "test failure \u2192 test output"
+          },
+          {
+            "source": 6,
+            "target": 9,
+            "value": 5,
+            "label": "test output \u2192 edit"
+          },
+          {
+            "source": 6,
+            "target": 10,
+            "value": 3,
+            "label": "test output \u2192 file content"
+          }
+        ],
+        "path_count": 26
       },
-      {
-        "source": 4,
-        "target": 2,
-        "value": 4,
-        "label": "finalize (step 1) \u2192 execute (step 2)"
-      },
-      {
-        "source": 1,
-        "target": 5,
-        "value": 3,
-        "label": "edit (step 2) \u2192 execute (step 3)"
-      },
-      {
-        "source": 2,
-        "target": 6,
-        "value": 3,
-        "label": "execute (step 2) \u2192 edit (step 3)"
-      },
-      {
-        "source": 2,
-        "target": 5,
-        "value": 25,
-        "label": "execute (step 2) \u2192 execute (step 3)"
-      },
-      {
-        "source": 2,
-        "target": 7,
-        "value": 2,
-        "label": "execute (step 2) \u2192 finalize (step 3)"
-      },
-      {
-        "source": 3,
-        "target": 5,
-        "value": 6,
-        "label": "inspect (step 2) \u2192 execute (step 3)"
-      },
-      {
-        "source": 3,
-        "target": 7,
-        "value": 1,
-        "label": "inspect (step 2) \u2192 finalize (step 3)"
-      },
-      {
-        "source": 8,
-        "target": 0,
-        "value": 36,
-        "label": "edit \u2192 execute (step 1)"
-      },
-      {
-        "source": 8,
-        "target": 4,
-        "value": 4,
-        "label": "edit \u2192 finalize (step 1)"
+      "test_pass": {
+        "nodes": [
+          {
+            "id": "anchor:0:test pass",
+            "label": "test pass",
+            "kind": "anchor",
+            "stage": 0,
+            "stage_label": "test pass"
+          },
+          {
+            "id": "step:1:repo listing",
+            "label": "repo listing",
+            "kind": "step",
+            "stage": 1,
+            "stage_label": "repo listing"
+          },
+          {
+            "id": "step:1:test failure",
+            "label": "test failure",
+            "kind": "step",
+            "stage": 1,
+            "stage_label": "test failure"
+          },
+          {
+            "id": "step:2:finalize",
+            "label": "finalize",
+            "kind": "step",
+            "stage": 2,
+            "stage_label": "finalize"
+          },
+          {
+            "id": "step:2:edit",
+            "label": "edit",
+            "kind": "step",
+            "stage": 2,
+            "stage_label": "edit"
+          },
+          {
+            "id": "step:2:file content",
+            "label": "file content",
+            "kind": "step",
+            "stage": 2,
+            "stage_label": "file content"
+          }
+        ],
+        "links": [
+          {
+            "source": 0,
+            "target": 1,
+            "value": 1,
+            "label": "test pass \u2192 repo listing"
+          },
+          {
+            "source": 0,
+            "target": 2,
+            "value": 3,
+            "label": "test pass \u2192 test failure"
+          },
+          {
+            "source": 1,
+            "target": 3,
+            "value": 1,
+            "label": "repo listing \u2192 finalize"
+          },
+          {
+            "source": 2,
+            "target": 4,
+            "value": 2,
+            "label": "test failure \u2192 edit"
+          },
+          {
+            "source": 2,
+            "target": 5,
+            "value": 1,
+            "label": "test failure \u2192 file content"
+          }
+        ],
+        "path_count": 4
       }
-    ]
+    },
+    "overview_graph": {
+      "nodes": [
+        {
+          "id": "anchor:0:edit",
+          "label": "edit",
+          "kind": "anchor",
+          "stage": 0,
+          "stage_label": "edit"
+        },
+        {
+          "id": "step:1:edit",
+          "label": "edit",
+          "kind": "step",
+          "stage": 1,
+          "stage_label": "edit"
+        },
+        {
+          "id": "step:1:file content",
+          "label": "file content",
+          "kind": "step",
+          "stage": 1,
+          "stage_label": "file content"
+        },
+        {
+          "id": "step:1:finalize",
+          "label": "finalize",
+          "kind": "step",
+          "stage": 1,
+          "stage_label": "finalize"
+        },
+        {
+          "id": "step:1:repo listing",
+          "label": "repo listing",
+          "kind": "step",
+          "stage": 1,
+          "stage_label": "repo listing"
+        },
+        {
+          "id": "step:1:test failure",
+          "label": "test failure",
+          "kind": "step",
+          "stage": 1,
+          "stage_label": "test failure"
+        },
+        {
+          "id": "step:1:test output",
+          "label": "test output",
+          "kind": "step",
+          "stage": 1,
+          "stage_label": "test output"
+        },
+        {
+          "id": "step:1:test pass",
+          "label": "test pass",
+          "kind": "step",
+          "stage": 1,
+          "stage_label": "test pass"
+        },
+        {
+          "id": "anchor:0:inspect",
+          "label": "inspect",
+          "kind": "anchor",
+          "stage": 0,
+          "stage_label": "inspect"
+        },
+        {
+          "id": "anchor:0:test failure",
+          "label": "test failure",
+          "kind": "anchor",
+          "stage": 0,
+          "stage_label": "test failure"
+        },
+        {
+          "id": "anchor:0:test pass",
+          "label": "test pass",
+          "kind": "anchor",
+          "stage": 0,
+          "stage_label": "test pass"
+        },
+        {
+          "id": "step:2:edit",
+          "label": "edit",
+          "kind": "step",
+          "stage": 2,
+          "stage_label": "edit"
+        },
+        {
+          "id": "step:2:file content",
+          "label": "file content",
+          "kind": "step",
+          "stage": 2,
+          "stage_label": "file content"
+        },
+        {
+          "id": "step:2:finalize",
+          "label": "finalize",
+          "kind": "step",
+          "stage": 2,
+          "stage_label": "finalize"
+        },
+        {
+          "id": "step:2:repo listing",
+          "label": "repo listing",
+          "kind": "step",
+          "stage": 2,
+          "stage_label": "repo listing"
+        },
+        {
+          "id": "step:2:test failure",
+          "label": "test failure",
+          "kind": "step",
+          "stage": 2,
+          "stage_label": "test failure"
+        },
+        {
+          "id": "step:2:test output",
+          "label": "test output",
+          "kind": "step",
+          "stage": 2,
+          "stage_label": "test output"
+        },
+        {
+          "id": "step:2:test pass",
+          "label": "test pass",
+          "kind": "step",
+          "stage": 2,
+          "stage_label": "test pass"
+        }
+      ],
+      "links": [
+        {
+          "source": 0,
+          "target": 1,
+          "value": 3,
+          "label": "edit \u2192 edit"
+        },
+        {
+          "source": 0,
+          "target": 2,
+          "value": 5,
+          "label": "edit \u2192 file content"
+        },
+        {
+          "source": 0,
+          "target": 3,
+          "value": 4,
+          "label": "edit \u2192 finalize"
+        },
+        {
+          "source": 0,
+          "target": 4,
+          "value": 2,
+          "label": "edit \u2192 repo listing"
+        },
+        {
+          "source": 0,
+          "target": 5,
+          "value": 18,
+          "label": "edit \u2192 test failure"
+        },
+        {
+          "source": 0,
+          "target": 6,
+          "value": 4,
+          "label": "edit \u2192 test output"
+        },
+        {
+          "source": 0,
+          "target": 7,
+          "value": 4,
+          "label": "edit \u2192 test pass"
+        },
+        {
+          "source": 8,
+          "target": 1,
+          "value": 17,
+          "label": "inspect \u2192 edit"
+        },
+        {
+          "source": 8,
+          "target": 2,
+          "value": 17,
+          "label": "inspect \u2192 file content"
+        },
+        {
+          "source": 8,
+          "target": 3,
+          "value": 8,
+          "label": "inspect \u2192 finalize"
+        },
+        {
+          "source": 8,
+          "target": 4,
+          "value": 2,
+          "label": "inspect \u2192 repo listing"
+        },
+        {
+          "source": 8,
+          "target": 6,
+          "value": 2,
+          "label": "inspect \u2192 test output"
+        },
+        {
+          "source": 9,
+          "target": 1,
+          "value": 4,
+          "label": "test failure \u2192 edit"
+        },
+        {
+          "source": 9,
+          "target": 2,
+          "value": 5,
+          "label": "test failure \u2192 file content"
+        },
+        {
+          "source": 9,
+          "target": 3,
+          "value": 2,
+          "label": "test failure \u2192 finalize"
+        },
+        {
+          "source": 9,
+          "target": 4,
+          "value": 3,
+          "label": "test failure \u2192 repo listing"
+        },
+        {
+          "source": 9,
+          "target": 5,
+          "value": 4,
+          "label": "test failure \u2192 test failure"
+        },
+        {
+          "source": 9,
+          "target": 6,
+          "value": 8,
+          "label": "test failure \u2192 test output"
+        },
+        {
+          "source": 10,
+          "target": 4,
+          "value": 1,
+          "label": "test pass \u2192 repo listing"
+        },
+        {
+          "source": 10,
+          "target": 5,
+          "value": 3,
+          "label": "test pass \u2192 test failure"
+        },
+        {
+          "source": 1,
+          "target": 11,
+          "value": 1,
+          "label": "edit \u2192 edit"
+        },
+        {
+          "source": 1,
+          "target": 12,
+          "value": 5,
+          "label": "edit \u2192 file content"
+        },
+        {
+          "source": 1,
+          "target": 13,
+          "value": 1,
+          "label": "edit \u2192 finalize"
+        },
+        {
+          "source": 1,
+          "target": 14,
+          "value": 2,
+          "label": "edit \u2192 repo listing"
+        },
+        {
+          "source": 1,
+          "target": 15,
+          "value": 10,
+          "label": "edit \u2192 test failure"
+        },
+        {
+          "source": 1,
+          "target": 16,
+          "value": 2,
+          "label": "edit \u2192 test output"
+        },
+        {
+          "source": 1,
+          "target": 17,
+          "value": 3,
+          "label": "edit \u2192 test pass"
+        },
+        {
+          "source": 2,
+          "target": 11,
+          "value": 10,
+          "label": "file content \u2192 edit"
+        },
+        {
+          "source": 2,
+          "target": 12,
+          "value": 14,
+          "label": "file content \u2192 file content"
+        },
+        {
+          "source": 2,
+          "target": 13,
+          "value": 2,
+          "label": "file content \u2192 finalize"
+        },
+        {
+          "source": 2,
+          "target": 16,
+          "value": 1,
+          "label": "file content \u2192 test output"
+        },
+        {
+          "source": 4,
+          "target": 11,
+          "value": 2,
+          "label": "repo listing \u2192 edit"
+        },
+        {
+          "source": 4,
+          "target": 12,
+          "value": 3,
+          "label": "repo listing \u2192 file content"
+        },
+        {
+          "source": 4,
+          "target": 13,
+          "value": 1,
+          "label": "repo listing \u2192 finalize"
+        },
+        {
+          "source": 4,
+          "target": 14,
+          "value": 1,
+          "label": "repo listing \u2192 repo listing"
+        },
+        {
+          "source": 4,
+          "target": 16,
+          "value": 1,
+          "label": "repo listing \u2192 test output"
+        },
+        {
+          "source": 5,
+          "target": 11,
+          "value": 4,
+          "label": "test failure \u2192 edit"
+        },
+        {
+          "source": 5,
+          "target": 12,
+          "value": 5,
+          "label": "test failure \u2192 file content"
+        },
+        {
+          "source": 5,
+          "target": 13,
+          "value": 2,
+          "label": "test failure \u2192 finalize"
+        },
+        {
+          "source": 5,
+          "target": 14,
+          "value": 3,
+          "label": "test failure \u2192 repo listing"
+        },
+        {
+          "source": 5,
+          "target": 15,
+          "value": 4,
+          "label": "test failure \u2192 test failure"
+        },
+        {
+          "source": 5,
+          "target": 16,
+          "value": 7,
+          "label": "test failure \u2192 test output"
+        },
+        {
+          "source": 6,
+          "target": 11,
+          "value": 7,
+          "label": "test output \u2192 edit"
+        },
+        {
+          "source": 6,
+          "target": 12,
+          "value": 4,
+          "label": "test output \u2192 file content"
+        },
+        {
+          "source": 6,
+          "target": 14,
+          "value": 1,
+          "label": "test output \u2192 repo listing"
+        },
+        {
+          "source": 6,
+          "target": 15,
+          "value": 1,
+          "label": "test output \u2192 test failure"
+        },
+        {
+          "source": 6,
+          "target": 16,
+          "value": 1,
+          "label": "test output \u2192 test output"
+        },
+        {
+          "source": 7,
+          "target": 14,
+          "value": 1,
+          "label": "test pass \u2192 repo listing"
+        },
+        {
+          "source": 7,
+          "target": 15,
+          "value": 3,
+          "label": "test pass \u2192 test failure"
+        }
+      ],
+      "path_count": 116
+    }
   },
   "file_transitions": {
     "nodes": [
@@ -79642,14 +80752,27 @@ total=${prompt.total_tokens}</pre>
       wireStepClicks('harness-loop');
     }
 
-    function buildEditFollowThrough() {
-      const graph = dashboardData.edit_follow_through;
+    function flowNodeColor(node) {
+      if (dashboardData.action_palette[node.label]) {
+        return dashboardData.action_palette[node.label];
+      }
+      if (node.label === 'test pass') {
+        return '#72B7B2';
+      }
+      if (node.label === 'test failure') {
+        return '#E45756';
+      }
+      return '#4C78A8';
+    }
+
+    function renderAnchorGraph(elementId, graph, emptyMessage) {
+      const host = document.getElementById(elementId);
       if (!graph.nodes.length || !graph.links.length) {
-        document.getElementById('edit-follow-through').innerHTML = '<div style="padding:24px;color:#9aa6d1;">Not enough edit follow-through yet to show what happened after edits.</div>';
+        host.innerHTML = `<div style="padding:24px;color:#9aa6d1;">${escapeHtml(emptyMessage)}</div>`;
         return;
       }
-      const stagePositions = { 0: 0.01, 1: 0.34, 2: 0.67, 3: 0.99 };
-      Plotly.newPlot('edit-follow-through', [{
+      const stagePositions = { 0: 0.01, 1: 0.5, 2: 0.99 };
+      Plotly.newPlot(elementId, [{
         type: 'sankey',
         arrangement: 'snap',
         node: {
@@ -79657,7 +80780,7 @@ total=${prompt.total_tokens}</pre>
           thickness: 18,
           line: { color: '#2b3355', width: 1 },
           label: graph.nodes.map((node) => node.stage_label || node.label),
-          color: graph.nodes.map((node) => dashboardData.action_palette[node.label] || '#F58518'),
+          color: graph.nodes.map((node) => flowNodeColor(node)),
           x: graph.nodes.map((node) => stagePositions[node.stage] ?? 0.99),
         },
         link: {
@@ -79674,6 +80797,39 @@ total=${prompt.total_tokens}</pre>
         font: { color: '#edf1ff' },
         margin: { l: 16, r: 16, t: 16, b: 16 },
       }, { responsive: true });
+    }
+
+    function buildAnchorOverview() {
+      const config = dashboardData.anchor_follow_through;
+      if (!config || !config.overview_graph) {
+        document.getElementById('anchor-overview').innerHTML = '<div style="padding:24px;color:#9aa6d1;">No combined anchor overview is available yet.</div>';
+        return;
+      }
+      renderAnchorGraph('anchor-overview', config.overview_graph, 'Not enough anchor paths yet to show a combined overview.');
+    }
+
+    function buildAnchorFollowThrough() {
+      const config = dashboardData.anchor_follow_through;
+      const selector = document.getElementById('anchor-flow-selector');
+      if (!config || !config.options.length) {
+        document.getElementById('anchor-follow-through').innerHTML = '<div style="padding:24px;color:#9aa6d1;">No anchor-based follow-through data is available yet.</div>';
+        return;
+      }
+
+      selector.innerHTML = config.options.map((option) => {
+        const suffix = option.path_count ? ` (${option.path_count})` : '';
+        return `<option value="${escapeHtml(option.key)}">${escapeHtml(option.label + suffix)}</option>`;
+      }).join('');
+
+      const renderSelectedAnchor = () => {
+        const key = selector.value || config.default_anchor;
+        const graph = config.graphs[key] || { nodes: [], links: [] };
+        renderAnchorGraph('anchor-follow-through', graph, 'Not enough follow-through for this anchor yet.');
+      };
+
+      selector.value = config.default_anchor;
+      selector.addEventListener('change', renderSelectedAnchor);
+      renderSelectedAnchor();
     }
 
 
@@ -79724,33 +80880,37 @@ total=${prompt.total_tokens}</pre>
     }
 
     function buildFeedbackNextAction() {
-      const graph = dashboardData.feedback_next_action;
-      if (!graph.nodes.length || !graph.links.length) {
+      const matrix = dashboardData.feedback_action_heatmap;
+      if (!matrix.feedback_labels.length || !matrix.action_labels.length) {
         document.getElementById('feedback-next-action').innerHTML = '<div style="padding:24px;color:#9aa6d1;">Not enough observable feedback transitions yet.</div>';
         return;
       }
       Plotly.newPlot('feedback-next-action', [{
-        type: 'sankey',
-        arrangement: 'snap',
-        node: {
-          pad: 18,
-          thickness: 18,
-          line: { color: '#2b3355', width: 1 },
-          label: graph.nodes.map((node) => node.label),
-          color: graph.nodes.map((node) => node.kind === 'feedback' ? '#4C78A8' : '#F58518'),
-        },
-        link: {
-          source: graph.links.map((link) => link.source),
-          target: graph.links.map((link) => link.target),
-          value: graph.links.map((link) => link.value),
-          label: graph.links.map((link) => link.label),
-          color: 'rgba(114,183,178,0.45)',
-        },
+        type: 'heatmap',
+        x: matrix.action_labels,
+        y: matrix.feedback_labels,
+        z: matrix.z,
+        text: matrix.text,
+        texttemplate: '%{text}',
+        textfont: { color: '#edf1ff', size: 12 },
+        colorscale: [
+          [0, '#0f1220'],
+          [0.15, '#21314f'],
+          [0.45, '#3f6ea0'],
+          [0.75, '#72B7B2'],
+          [1, '#d7f5ef'],
+        ],
+        xgap: 2,
+        ygap: 2,
+        hovertemplate: '<b>%{y}</b><br>next move=%{x}<br>count=%{z}<extra></extra>',
+        colorbar: { title: 'count' },
       }], {
         paper_bgcolor: 'rgba(0,0,0,0)',
         plot_bgcolor: 'rgba(0,0,0,0)',
         font: { color: '#edf1ff' },
-        margin: { l: 16, r: 16, t: 16, b: 16 },
+        xaxis: { title: 'next meaningful move after feedback', side: 'bottom', automargin: true },
+        yaxis: { title: 'feedback category', automargin: true, autorange: 'reversed' },
+        margin: { l: 110, r: 24, t: 16, b: 72 },
       }, { responsive: true });
     }
 
@@ -79963,7 +81123,8 @@ total=${prompt.total_tokens}</pre>
     buildLaneSummary();
     buildLaneHandoffs();
     buildFeedbackNextAction();
-    buildEditFollowThrough();
+    buildAnchorOverview();
+    buildAnchorFollowThrough();
     buildTimeline();
     buildPromptComposition();
     buildControlTimeline();

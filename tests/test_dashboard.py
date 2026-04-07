@@ -42,10 +42,13 @@ class DashboardTestCase(unittest.TestCase):
         self.assertEqual(data["lane_occupancy"][0]["lane"], "workspace")
         self.assertEqual(data["lane_summary"][0]["lane"], "controller")
         self.assertTrue(data["lane_handoffs"]["links"])
-        self.assertEqual(data["feedback_next_action"]["nodes"][0]["kind"], "feedback")
-        self.assertTrue(data["edit_follow_through"]["nodes"])
-        self.assertTrue(data["edit_follow_through"]["links"])
-        self.assertIn(1, {node["stage"] for node in data["edit_follow_through"]["nodes"] if node["kind"] == "action"})
+        self.assertTrue(data["feedback_action_heatmap"]["feedback_labels"])
+        self.assertTrue(data["feedback_action_heatmap"]["action_labels"])
+        self.assertEqual(data["anchor_follow_through"]["default_anchor"], "edit")
+        self.assertTrue(data["anchor_follow_through"]["overview_graph"]["links"])
+        self.assertTrue(data["anchor_follow_through"]["graphs"]["edit"]["nodes"])
+        self.assertTrue(data["anchor_follow_through"]["graphs"]["edit"]["links"])
+        self.assertIn("inspect", {option["key"] for option in data["anchor_follow_through"]["options"]})
         self.assertEqual(data["cumulative_progress"][-1]["cumulative_tests_passed"], 4)
         self.assertEqual(data["summary"]["files_before_first_edit_count"], 1)
         self.assertEqual(data["summary"]["edits_before_first_pass"], 1)
@@ -57,15 +60,15 @@ class DashboardTestCase(unittest.TestCase):
         self.assertTrue(data["file_transitions"]["links"])
         self.assertNotIn("/", data["file_transitions"]["nodes"][0]["label"])
 
-    def test_edit_follow_through_highlights_edit_chains_and_verification(self) -> None:
+    def test_anchor_follow_through_supports_multiple_selected_starts(self) -> None:
         base_time = datetime(2024, 1, 1, tzinfo=timezone.utc)
         events = [
             NormalizedEvent(
-                run_id="trace-edit-follow-through",
+                run_id="trace-anchor-follow-through",
                 step_id="step-1",
-                action_type=ActionType.EDIT,
+                action_type=ActionType.INSPECT,
                 source=EventSource.TOOL,
-                event_type=EventType.FILE_EDIT,
+                event_type=EventType.FILE_READ,
                 status=StepStatus.SUCCESS,
                 timestamp_start=base_time,
                 timestamp_end=base_time + timedelta(seconds=1),
@@ -73,50 +76,166 @@ class DashboardTestCase(unittest.TestCase):
                 tool_name="file_editor",
             ),
             NormalizedEvent(
-                run_id="trace-edit-follow-through",
+                run_id="trace-anchor-follow-through",
                 step_id="step-2",
-                action_type=ActionType.PLAN,
-                source=EventSource.SYSTEM,
-                event_type=EventType.MESSAGE,
-                status=StepStatus.SUCCESS,
-                timestamp_start=base_time + timedelta(seconds=2),
-                timestamp_end=base_time + timedelta(seconds=3),
-                tool_name="task_tracker",
-            ),
-            NormalizedEvent(
-                run_id="trace-edit-follow-through",
-                step_id="step-3",
                 action_type=ActionType.EDIT,
                 source=EventSource.TOOL,
                 event_type=EventType.FILE_EDIT,
                 status=StepStatus.SUCCESS,
-                timestamp_start=base_time + timedelta(seconds=4),
-                timestamp_end=base_time + timedelta(seconds=5),
+                timestamp_start=base_time + timedelta(seconds=2),
+                timestamp_end=base_time + timedelta(seconds=3),
                 file_paths=("/workspace/app.py",),
                 tool_name="file_editor",
             ),
             NormalizedEvent(
-                run_id="trace-edit-follow-through",
+                run_id="trace-anchor-follow-through",
+                step_id="step-3",
+                action_type=ActionType.EXECUTE,
+                source=EventSource.TOOL,
+                event_type=EventType.TEST_RUN,
+                status=StepStatus.ERROR,
+                timestamp_start=base_time + timedelta(seconds=4),
+                timestamp_end=base_time + timedelta(seconds=5),
+                test_count=1,
+                tests_failed=1,
+                tool_name="terminal",
+                metadata={"output": "1 failed"},
+            ),
+            NormalizedEvent(
+                run_id="trace-anchor-follow-through",
                 step_id="step-4",
+                action_type=ActionType.INSPECT,
+                source=EventSource.TOOL,
+                event_type=EventType.FILE_READ,
+                status=StepStatus.SUCCESS,
+                timestamp_start=base_time + timedelta(seconds=6),
+                timestamp_end=base_time + timedelta(seconds=7),
+                file_paths=("/workspace/app.py",),
+                tool_name="file_editor",
+            ),
+            NormalizedEvent(
+                run_id="trace-anchor-follow-through",
+                step_id="step-5",
+                action_type=ActionType.EDIT,
+                source=EventSource.TOOL,
+                event_type=EventType.FILE_EDIT,
+                status=StepStatus.SUCCESS,
+                timestamp_start=base_time + timedelta(seconds=8),
+                timestamp_end=base_time + timedelta(seconds=9),
+                file_paths=("/workspace/app.py",),
+                tool_name="file_editor",
+            ),
+            NormalizedEvent(
+                run_id="trace-anchor-follow-through",
+                step_id="step-6",
                 action_type=ActionType.EXECUTE,
                 source=EventSource.TOOL,
                 event_type=EventType.TEST_RUN,
                 status=StepStatus.SUCCESS,
-                timestamp_start=base_time + timedelta(seconds=6),
-                timestamp_end=base_time + timedelta(seconds=7),
+                timestamp_start=base_time + timedelta(seconds=10),
+                timestamp_end=base_time + timedelta(seconds=11),
                 test_count=1,
                 tests_passed=1,
                 tool_name="terminal",
                 metadata={"output": "1 passed"},
             ),
+            NormalizedEvent(
+                run_id="trace-anchor-follow-through",
+                step_id="step-7",
+                action_type=ActionType.FINALIZE,
+                source=EventSource.SYSTEM,
+                event_type=EventType.MESSAGE,
+                status=StepStatus.SUCCESS,
+                timestamp_start=base_time + timedelta(seconds=12),
+                timestamp_end=base_time + timedelta(seconds=13),
+                tool_name="finish",
+            ),
         ]
 
-        graph = build_single_run_dashboard_data(events)["edit_follow_through"]
-        labels = {link["label"] for link in graph["links"]}
+        flow_payload = build_single_run_dashboard_data(events)["anchor_follow_through"]
+        flow_data = flow_payload["graphs"]
+        edit_labels = {link["label"] for link in flow_data["edit"]["links"]}
+        inspect_labels = {link["label"] for link in flow_data["inspect"]["links"]}
+        failure_labels = {link["label"] for link in flow_data["test_failure"]["links"]}
+        pass_labels = {link["label"] for link in flow_data["test_pass"]["links"]}
+        overview_labels = {link["label"] for link in flow_payload["overview_graph"]["links"]}
 
-        self.assertIn("edit → edit (step 1)", labels)
-        self.assertIn("edit (step 1) → execute (step 2)", labels)
-        self.assertIn("edit → execute (step 1)", labels)
+        self.assertIn("edit → test failure", edit_labels)
+        self.assertIn("test failure → file content", edit_labels)
+        self.assertNotIn("edit → execute", edit_labels)
+        self.assertIn("inspect → edit", inspect_labels)
+        self.assertIn("edit → test failure", inspect_labels)
+        self.assertIn("test failure → file content", failure_labels)
+        self.assertIn("file content → edit", failure_labels)
+        self.assertIn("test pass → finalize", pass_labels)
+        self.assertIn("inspect → edit", overview_labels)
+        self.assertIn("edit → test failure", overview_labels)
+        self.assertIn("test pass → finalize", overview_labels)
+        self.assertFalse(flow_data["test_pass"]["nodes"][0]["label"] == "finalize")
+
+    def test_feedback_action_heatmap_counts_next_actions_by_category(self) -> None:
+        base_time = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        events = [
+            NormalizedEvent(
+                run_id="trace-feedback-heatmap",
+                step_id="step-1",
+                action_type=ActionType.INSPECT,
+                source=EventSource.TOOL,
+                event_type=EventType.FILE_READ,
+                status=StepStatus.SUCCESS,
+                timestamp_start=base_time,
+                timestamp_end=base_time + timedelta(seconds=1),
+                file_paths=("/workspace/app.py",),
+                tool_name="file_editor",
+            ),
+            NormalizedEvent(
+                run_id="trace-feedback-heatmap",
+                step_id="step-2",
+                action_type=ActionType.EDIT,
+                source=EventSource.TOOL,
+                event_type=EventType.FILE_EDIT,
+                status=StepStatus.SUCCESS,
+                timestamp_start=base_time + timedelta(seconds=2),
+                timestamp_end=base_time + timedelta(seconds=3),
+                file_paths=("/workspace/app.py",),
+                tool_name="file_editor",
+            ),
+            NormalizedEvent(
+                run_id="trace-feedback-heatmap",
+                step_id="step-3",
+                action_type=ActionType.EXECUTE,
+                source=EventSource.TOOL,
+                event_type=EventType.TEST_RUN,
+                status=StepStatus.ERROR,
+                timestamp_start=base_time + timedelta(seconds=4),
+                timestamp_end=base_time + timedelta(seconds=5),
+                test_count=1,
+                tests_failed=1,
+                tool_name="terminal",
+                metadata={"output": "1 failed"},
+            ),
+            NormalizedEvent(
+                run_id="trace-feedback-heatmap",
+                step_id="step-4",
+                action_type=ActionType.EDIT,
+                source=EventSource.TOOL,
+                event_type=EventType.FILE_EDIT,
+                status=StepStatus.SUCCESS,
+                timestamp_start=base_time + timedelta(seconds=6),
+                timestamp_end=base_time + timedelta(seconds=7),
+                file_paths=("/workspace/app.py",),
+                tool_name="file_editor",
+            ),
+        ]
+
+        heatmap = build_single_run_dashboard_data(events)["feedback_action_heatmap"]
+        row_index = {label: index for index, label in enumerate(heatmap["feedback_labels"])}
+        col_index = {label: index for index, label in enumerate(heatmap["action_labels"])}
+
+        self.assertNotIn("execute", heatmap["action_labels"])
+        self.assertEqual(heatmap["z"][row_index["file content"]][col_index["edit"]], 1)
+        self.assertEqual(heatmap["z"][row_index["edit result"]][col_index["test failure"]], 1)
+        self.assertEqual(heatmap["z"][row_index["test failure"]][col_index["edit"]], 1)
 
 
     def test_render_single_run_dashboard_writes_html(self) -> None:
@@ -141,8 +260,10 @@ class DashboardTestCase(unittest.TestCase):
         self.assertIn("Controller", html)
         self.assertIn("Handoff", html)
         self.assertIn("Dominant lane by time", html)
-        self.assertIn("Feedback to next action", html)
-        self.assertIn("After edit, what happened next?", html)
+        self.assertIn("Feedback → next meaningful move heatmap", html)
+        self.assertIn("All anchors overview", html)
+        self.assertIn("Selected anchor: next two meaningful moves", html)
+        self.assertIn("anchor-flow-selector", html)
         self.assertIn("Prompt makeup per LLM call", html)
         self.assertIn("fresh repo/tool context", html)
         self.assertIn("File transition graph (top files)", html)

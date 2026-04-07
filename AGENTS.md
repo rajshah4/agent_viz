@@ -23,6 +23,7 @@ Current implemented artifacts:
 - `src/agent_viz/render_laminar.py` for CLI rendering from Laminar references
 - `tests/test_metrics.py`, `tests/test_laminar_parser.py`, `tests/test_laminar_loader.py`, and `tests/test_dashboard.py` for lightweight validation
 - `docs/product_thesis.md` for positioning versus generic trace viewers
+- `docs/dashboard_reading_guide.md` for chart-by-chart explanation and interpretation tips
 - `docs/laminar_parser.md` for parser scope and assumptions
 
 ## Working conventions
@@ -69,8 +70,9 @@ Current implemented artifacts:
 - For failed runs, `tests before first pass` falls back to total tests run before the trace ended; this keeps the metric easy to compare across success and failure cases.
 - The comparison page includes run focus snapshots showing top modules and top files, which is useful when same-benchmark traces have similar action mixes but touch different code areas.
 - GitHub Pages publishing is intentionally minimal: a hand-written root `index.html` plus `.github/workflows/deploy-pages.yml`, which copies a curated set of standalone HTML dashboards into `_site`; update both files together when changing the showcase.
-- Single-run dashboards keep `Feedback to next action` for immediate observation routing, but the staged follow-through view is now edit-centered: `After edit, what happened next?` traces the next three material actions after each edit while skipping `plan` and `overhead`, making edit → execute verification, edit → edit chaining, edit → inspect reconsideration, and edit → finalize conclusion attempts easy to spot.
-- In the dashboard copy, `finalize` means the run appeared to conclude or submit an answer, not necessarily the literal last raw event in the trace.
+- The older `Feedback to next action` Sankey has been replaced by `Feedback → next meaningful move heatmap`, which shows raw counts for feedback-category → next-meaningful-move pairs and collapses routine `execute` spans into outcomes like `test failure`, `test pass`, `file content`, or shell output so `execute` does not dominate the x-axis.
+- Single-run dashboards also include both `All anchors overview` and the selector-driven `Selected anchor: next two meaningful moves`. The selector lets you choose `inspect`, `edit`, `test failure`, or `test pass`, then shows the next two meaningful nodes while skipping `plan`/`overhead` and collapsing routine `execute` spans into observed outcomes like `test failure`, `test pass`, `file content`, or shell output. The overview combines all those anchors into one denser Sankey for an at-a-glance branch mix.
+- `finalize` is treated as a useful endpoint/sink in those staged views, but not as a starting anchor. In dashboard copy, it means the run appeared to conclude or submit an answer, not necessarily the literal last raw event in the trace.
 - Feedback categorization now prefers explicit test outcomes (`test failure` / `test pass`) over a generic `tool error` label for test-run events.
 
 

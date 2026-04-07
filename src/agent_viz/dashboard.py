@@ -39,6 +39,25 @@ HARNESS_LANE_COLORS = {
 
 LANE_ORDER = ("controller", "model", "workspace", "runtime")
 
+FLOW_ANCHORS = (
+    {"key": "inspect", "label": "After inspect", "anchor_label": ActionType.INSPECT.value},
+    {"key": "edit", "label": "After edit", "anchor_label": ActionType.EDIT.value},
+    {"key": "test_failure", "label": "After test failure", "anchor_label": "test failure"},
+    {"key": "test_pass", "label": "After test pass", "anchor_label": "test pass"},
+)
+FLOW_ANCHOR_LABELS = {anchor["key"]: anchor["anchor_label"] for anchor in FLOW_ANCHORS}
+HEATMAP_TARGET_ORDER = (
+    ActionType.EDIT.value,
+    "file content",
+    "repo listing",
+    "test failure",
+    "test pass",
+    "shell output",
+    "shell error",
+    ActionType.RETRY.value,
+    ActionType.WAIT.value,
+    ActionType.FINALIZE.value,
+)
 
 
 def _derive_burden_metrics(events: list[NormalizedEvent]) -> dict[str, int | None | list[str]]:
@@ -229,8 +248,8 @@ def build_single_run_dashboard_data(events: list[NormalizedEvent]) -> dict[str, 
     transitions = file_transition_edges(ordered_events)
     filtered_transitions = _filter_top_file_transitions(transitions, file_touch_counts, max_files=8)
     transition_graph = _build_transition_graph(filtered_transitions)
-    feedback_graph = _build_feedback_action_graph(ordered_events)
-    edit_follow_through_graph = _build_edit_follow_through_graph(ordered_events)
+    feedback_heatmap = _build_feedback_action_heatmap(ordered_events)
+    anchor_follow_through = _build_anchor_follow_through(ordered_events)
     lane_occupancy_rows, lane_summary_rows, lane_handoff_graph = _build_lane_views(
         timeline_rows,
         total_run_duration_ms=summary.wall_clock_duration_ms,
@@ -303,8 +322,8 @@ def build_single_run_dashboard_data(events: list[NormalizedEvent]) -> dict[str, 
         "step_details": step_details,
         "prompt_composition": prompt_rows,
         "cumulative_progress": cumulative_rows,
-        "feedback_next_action": feedback_graph,
-        "edit_follow_through": edit_follow_through_graph,
+        "feedback_action_heatmap": feedback_heatmap,
+        "anchor_follow_through": anchor_follow_through,
         "file_transitions": transition_graph,
         "burden_metrics": burden_rows,
         "action_counts": dict(action_counts),
@@ -405,76 +424,125 @@ def _filter_top_file_transitions(
 
 
 
-def _build_feedback_action_graph(events: list[NormalizedEvent]) -> dict[str, list[dict[str, Any]]]:
+def _build_feedback_action_heatmap(events: list[NormalizedEvent]) -> dict[str, Any]:
     transitions: Counter[tuple[str, str]] = Counter()
+    feedback_totals: Counter[str] = Counter()
+    target_totals: Counter[str] = Counter()
     ordered_events = _ordered_events(events)
     for index, event in enumerate(ordered_events[:-1]):
         feedback_category = _feedback_category(event)
-        if not feedback_category:
+        if not feedback_category or feedback_category == "controller update":
             continue
-        next_actions = _next_visible_actions(ordered_events, start_index=index + 1, limit=1)
-        if not next_actions:
+        next_target = _next_flow_node(ordered_events, start_index=index + 1)
+        if not next_target:
             continue
-        transitions[(feedback_category, next_actions[0])] += 1
+        next_label, _ = next_target
+        transitions[(feedback_category, next_label)] += 1
+        feedback_totals[feedback_category] += 1
+        target_totals[next_label] += 1
 
-    node_index: dict[str, int] = {}
-    nodes: list[dict[str, Any]] = []
-    links: list[dict[str, Any]] = []
+    if not transitions:
+        return {"feedback_labels": [], "action_labels": [], "z": [], "text": []}
 
-    def get_index(label: str, kind: str) -> int:
-        key = f"{kind}:{label}"
-        if key not in node_index:
-            node_index[key] = len(nodes)
-            nodes.append({"id": key, "label": label, "kind": kind})
-        return node_index[key]
+    feedback_labels = sorted(feedback_totals, key=lambda label: (-feedback_totals[label], label))
+    present_targets = set(target_totals)
+    action_labels = [label for label in HEATMAP_TARGET_ORDER if label in present_targets]
+    action_labels.extend(sorted(label for label in present_targets if label not in HEATMAP_TARGET_ORDER))
 
-    for (source, target), weight in sorted(transitions.items()):
-        links.append(
+    z = [[transitions.get((feedback_label, action_label), 0) for action_label in action_labels] for feedback_label in feedback_labels]
+    text = [[str(value) if value else "" for value in row] for row in z]
+
+    return {
+        "feedback_labels": feedback_labels,
+        "action_labels": action_labels,
+        "z": z,
+        "text": text,
+    }
+
+
+def _build_anchor_follow_through(events: list[NormalizedEvent]) -> dict[str, Any]:
+    graphs: dict[str, dict[str, Any]] = {}
+    options: list[dict[str, Any]] = []
+    overview_paths: list[list[str]] = []
+    for anchor in FLOW_ANCHORS:
+        paths = _collect_anchor_paths(events, anchor_key=anchor["key"], anchor_label=anchor["anchor_label"])
+        graph = _build_anchor_graph(paths)
+        graphs[anchor["key"]] = graph
+        overview_paths.extend(paths)
+        options.append(
             {
-                "source": get_index(source, "feedback"),
-                "target": get_index(target, "action"),
-                "value": weight,
-                "label": f"{source} → {target}",
+                "key": anchor["key"],
+                "label": anchor["label"],
+                "path_count": graph["path_count"],
             }
         )
 
-    return {"nodes": nodes, "links": links}
+    default_anchor = "edit"
+    if not graphs.get(default_anchor, {}).get("links"):
+        default_anchor = next((option["key"] for option in options if graphs[option["key"]]["links"]), options[0]["key"])
+
+    return {
+        "default_anchor": default_anchor,
+        "options": options,
+        "graphs": graphs,
+        "overview_graph": _build_anchor_graph(overview_paths),
+    }
 
 
-def _build_edit_follow_through_graph(
+
+def _collect_anchor_paths(
     events: list[NormalizedEvent],
     *,
-    steps: int = 3,
-) -> dict[str, list[dict[str, Any]]]:
-    transitions: Counter[tuple[tuple[str, int, str], tuple[str, int, str]]] = Counter()
+    anchor_key: str,
+    anchor_label: str,
+) -> list[list[str]]:
+    paths: list[list[str]] = []
     ordered_events = _ordered_events(events)
     for index, event in enumerate(ordered_events[:-1]):
-        if event.action_type != ActionType.EDIT:
+        if _flow_anchor_key(event) != anchor_key:
             continue
-        follow_through = _next_visible_actions(ordered_events, start_index=index + 1, limit=steps)
-        if not follow_through:
+        first_node = _next_flow_node(ordered_events, start_index=index + 1)
+        if not first_node:
             continue
 
-        path = [("anchor", 0, ActionType.EDIT.value)]
-        path.extend(("action", step_index, action) for step_index, action in enumerate(follow_through, start=1))
-        for source_node, target_node in zip(path, path[1:]):
-            transitions[(source_node, target_node)] += 1
+        path = [anchor_label]
+        first_label, first_index = first_node
+        path.append(first_label)
 
+        if first_label != ActionType.FINALIZE.value:
+            second_node = _next_flow_node(ordered_events, start_index=first_index + 1)
+            if second_node:
+                second_label, _ = second_node
+                path.append(second_label)
+        paths.append(path)
+    return paths
+
+
+
+def _build_anchor_graph(paths: list[list[str]]) -> dict[str, Any]:
+    transitions: Counter[tuple[tuple[str, int, str], tuple[str, int, str]]] = Counter()
     node_index: dict[str, int] = {}
     nodes: list[dict[str, Any]] = []
     links: list[dict[str, Any]] = []
+
+    for path in paths:
+        staged_path = [(("anchor" if stage == 0 else "step"), stage, label) for stage, label in enumerate(path)]
+        for source_node, target_node in zip(staged_path, staged_path[1:]):
+            transitions[(source_node, target_node)] += 1
 
     def get_index(label: str, kind: str, stage: int) -> int:
         key = f"{kind}:{stage}:{label}"
         if key not in node_index:
             node_index[key] = len(nodes)
-            nodes.append({
-                "id": key,
-                "label": label,
-                "kind": kind,
-                "stage": stage,
-                "stage_label": _follow_through_stage_label(label, kind, stage),
-            })
+            nodes.append(
+                {
+                    "id": key,
+                    "label": label,
+                    "kind": kind,
+                    "stage": stage,
+                    "stage_label": label,
+                }
+            )
         return node_index[key]
 
     for (source_node, target_node), weight in sorted(transitions.items()):
@@ -485,20 +553,11 @@ def _build_edit_follow_through_graph(
                 "source": get_index(source_label, source_kind, source_stage),
                 "target": get_index(target_label, target_kind, target_stage),
                 "value": weight,
-                "label": (
-                    f"{_follow_through_stage_label(source_label, source_kind, source_stage)} → "
-                    f"{_follow_through_stage_label(target_label, target_kind, target_stage)}"
-                ),
+                "label": f"{source_label} → {target_label}",
             }
         )
 
-    return {"nodes": nodes, "links": links}
-
-
-def _follow_through_stage_label(label: str, kind: str, stage: int) -> str:
-    if kind == "anchor":
-        return label
-    return f"{label} (step {stage})"
+    return {"nodes": nodes, "links": links, "path_count": len(paths)}
 
 
 def _build_lane_views(
@@ -613,15 +672,59 @@ def _build_simple_sankey(
     return {"nodes": nodes, "links": links}
 
 
-def _next_visible_actions(events: list[NormalizedEvent], *, start_index: int, limit: int) -> list[str]:
+def _next_visible_actions(
+    events: list[NormalizedEvent],
+    *,
+    start_index: int,
+    limit: int,
+    skip_action_types: set[ActionType] | None = None,
+) -> list[str]:
     actions: list[str] = []
+    skipped = {ActionType.OVERHEAD, ActionType.PLAN}
+    if skip_action_types:
+        skipped.update(skip_action_types)
     for event in events[start_index:]:
-        if event.action_type in {ActionType.OVERHEAD, ActionType.PLAN}:
+        if event.action_type in skipped:
             continue
         actions.append(event.action_type.value)
         if len(actions) >= limit:
             break
     return actions
+
+
+def _flow_anchor_key(event: NormalizedEvent) -> str | None:
+    feedback = _feedback_category(event)
+    if feedback == "test failure":
+        return "test_failure"
+    if feedback == "test pass":
+        return "test_pass"
+    if event.action_type == ActionType.INSPECT:
+        return "inspect"
+    if event.action_type == ActionType.EDIT:
+        return "edit"
+    return None
+
+
+def _next_flow_node(
+    events: list[NormalizedEvent],
+    *,
+    start_index: int,
+) -> tuple[str, int] | None:
+    for index, event in enumerate(events[start_index:], start=start_index):
+        if event.action_type in {ActionType.OVERHEAD, ActionType.PLAN}:
+            continue
+        if event.action_type == ActionType.EXECUTE:
+            feedback = _feedback_category(event)
+            if feedback:
+                return feedback, index
+            continue
+        if event.action_type in {ActionType.EDIT, ActionType.RETRY, ActionType.WAIT, ActionType.FINALIZE}:
+            return event.action_type.value, index
+        feedback = _feedback_category(event)
+        if feedback and feedback != "controller update":
+            return feedback, index
+        return event.action_type.value, index
+    return None
 
 
 def _event_lane(event: NormalizedEvent) -> str:
@@ -875,16 +978,24 @@ def _build_dashboard_html(dashboard_data: dict[str, Any], *, title: str | None) 
           <div id=\"harness-loop\" class=\"chart short\"></div>
         </section>
         <section class=\"panel\">
-          <h2>Feedback to next action</h2>
-          <p>How observations like file content or test failures route into the next chosen action.</p>
+          <h2>Feedback → next meaningful move heatmap</h2>
+          <p>Raw counts of what came after each feedback category once routine <code>execute</code> spans were collapsed into their observed outcomes. This keeps the heatmap aligned with the more legible categories like edit, file content, test failure, test pass, retry, wait, and finalize.</p>
           <div id=\"feedback-next-action\" class=\"chart short\"></div>
         </section>
       </div>
-      <section class=\"panel\">
-        <h2>After edit, what happened next?</h2>
-        <p>Tracks the next three material actions after each edit, skipping plan and overhead so you can see edit → execute verification, edit → edit chaining, edit → inspect reconsideration, or edit → finalize conclusion attempts. Here, <code>finalize</code> means the run appeared to conclude, not necessarily the literal last raw event.</p>
-        <div id=\"edit-follow-through\" class=\"chart short\"></div>
-      </section>
+      <div class=\"grid two\">
+        <section class=\"panel\">
+          <h2>All anchors overview</h2>
+          <p>One dense Sankey combining inspect, edit, test failure, and test pass anchors in a single view. It is less readable than the selector, but useful for spotting the overall balance of branches across all anchor types at once.</p>
+          <div id=\"anchor-overview\" class=\"chart short\"></div>
+        </section>
+        <section class=\"panel\">
+          <h2>Selected anchor: next two meaningful moves</h2>
+          <p>Choose a high-value anchor like inspect, edit, test failure, or test pass. The chart then shows the next two meaningful nodes after that anchor while skipping plan and overhead and collapsing routine <code>execute</code> steps into their observed outcomes. <code>finalize</code> is allowed as an endpoint, but not as a starting anchor.</p>
+          <select id=\"anchor-flow-selector\" class=\"selector\"></select>
+          <div id=\"anchor-follow-through\" class=\"chart short\"></div>
+        </section>
+      </div>
       <section class=\"panel\">
         <h2>Lane summary and handoffs</h2>
         <p>Observed active time, burst lengths, and layer-to-layer handoffs. Active-time shares are relative to full run time and can overlap when layers were active concurrently.</p>
@@ -1090,14 +1201,27 @@ def _build_dashboard_html(dashboard_data: dict[str, Any], *, title: str | None) 
       wireStepClicks('harness-loop');
     }
 
-    function buildEditFollowThrough() {
-      const graph = dashboardData.edit_follow_through;
+    function flowNodeColor(node) {
+      if (dashboardData.action_palette[node.label]) {
+        return dashboardData.action_palette[node.label];
+      }
+      if (node.label === 'test pass') {
+        return '#72B7B2';
+      }
+      if (node.label === 'test failure') {
+        return '#E45756';
+      }
+      return '#4C78A8';
+    }
+
+    function renderAnchorGraph(elementId, graph, emptyMessage) {
+      const host = document.getElementById(elementId);
       if (!graph.nodes.length || !graph.links.length) {
-        document.getElementById('edit-follow-through').innerHTML = '<div style="padding:24px;color:#9aa6d1;">Not enough edit follow-through yet to show what happened after edits.</div>';
+        host.innerHTML = `<div style="padding:24px;color:#9aa6d1;">${escapeHtml(emptyMessage)}</div>`;
         return;
       }
-      const stagePositions = { 0: 0.01, 1: 0.34, 2: 0.67, 3: 0.99 };
-      Plotly.newPlot('edit-follow-through', [{
+      const stagePositions = { 0: 0.01, 1: 0.5, 2: 0.99 };
+      Plotly.newPlot(elementId, [{
         type: 'sankey',
         arrangement: 'snap',
         node: {
@@ -1105,7 +1229,7 @@ def _build_dashboard_html(dashboard_data: dict[str, Any], *, title: str | None) 
           thickness: 18,
           line: { color: '#2b3355', width: 1 },
           label: graph.nodes.map((node) => node.stage_label || node.label),
-          color: graph.nodes.map((node) => dashboardData.action_palette[node.label] || '#F58518'),
+          color: graph.nodes.map((node) => flowNodeColor(node)),
           x: graph.nodes.map((node) => stagePositions[node.stage] ?? 0.99),
         },
         link: {
@@ -1122,6 +1246,39 @@ def _build_dashboard_html(dashboard_data: dict[str, Any], *, title: str | None) 
         font: { color: '#edf1ff' },
         margin: { l: 16, r: 16, t: 16, b: 16 },
       }, { responsive: true });
+    }
+
+    function buildAnchorOverview() {
+      const config = dashboardData.anchor_follow_through;
+      if (!config || !config.overview_graph) {
+        document.getElementById('anchor-overview').innerHTML = '<div style="padding:24px;color:#9aa6d1;">No combined anchor overview is available yet.</div>';
+        return;
+      }
+      renderAnchorGraph('anchor-overview', config.overview_graph, 'Not enough anchor paths yet to show a combined overview.');
+    }
+
+    function buildAnchorFollowThrough() {
+      const config = dashboardData.anchor_follow_through;
+      const selector = document.getElementById('anchor-flow-selector');
+      if (!config || !config.options.length) {
+        document.getElementById('anchor-follow-through').innerHTML = '<div style="padding:24px;color:#9aa6d1;">No anchor-based follow-through data is available yet.</div>';
+        return;
+      }
+
+      selector.innerHTML = config.options.map((option) => {
+        const suffix = option.path_count ? ` (${option.path_count})` : '';
+        return `<option value="${escapeHtml(option.key)}">${escapeHtml(option.label + suffix)}</option>`;
+      }).join('');
+
+      const renderSelectedAnchor = () => {
+        const key = selector.value || config.default_anchor;
+        const graph = config.graphs[key] || { nodes: [], links: [] };
+        renderAnchorGraph('anchor-follow-through', graph, 'Not enough follow-through for this anchor yet.');
+      };
+
+      selector.value = config.default_anchor;
+      selector.addEventListener('change', renderSelectedAnchor);
+      renderSelectedAnchor();
     }
 
 
@@ -1172,33 +1329,37 @@ def _build_dashboard_html(dashboard_data: dict[str, Any], *, title: str | None) 
     }
 
     function buildFeedbackNextAction() {
-      const graph = dashboardData.feedback_next_action;
-      if (!graph.nodes.length || !graph.links.length) {
+      const matrix = dashboardData.feedback_action_heatmap;
+      if (!matrix.feedback_labels.length || !matrix.action_labels.length) {
         document.getElementById('feedback-next-action').innerHTML = '<div style="padding:24px;color:#9aa6d1;">Not enough observable feedback transitions yet.</div>';
         return;
       }
       Plotly.newPlot('feedback-next-action', [{
-        type: 'sankey',
-        arrangement: 'snap',
-        node: {
-          pad: 18,
-          thickness: 18,
-          line: { color: '#2b3355', width: 1 },
-          label: graph.nodes.map((node) => node.label),
-          color: graph.nodes.map((node) => node.kind === 'feedback' ? '#4C78A8' : '#F58518'),
-        },
-        link: {
-          source: graph.links.map((link) => link.source),
-          target: graph.links.map((link) => link.target),
-          value: graph.links.map((link) => link.value),
-          label: graph.links.map((link) => link.label),
-          color: 'rgba(114,183,178,0.45)',
-        },
+        type: 'heatmap',
+        x: matrix.action_labels,
+        y: matrix.feedback_labels,
+        z: matrix.z,
+        text: matrix.text,
+        texttemplate: '%{text}',
+        textfont: { color: '#edf1ff', size: 12 },
+        colorscale: [
+          [0, '#0f1220'],
+          [0.15, '#21314f'],
+          [0.45, '#3f6ea0'],
+          [0.75, '#72B7B2'],
+          [1, '#d7f5ef'],
+        ],
+        xgap: 2,
+        ygap: 2,
+        hovertemplate: '<b>%{y}</b><br>next move=%{x}<br>count=%{z}<extra></extra>',
+        colorbar: { title: 'count' },
       }], {
         paper_bgcolor: 'rgba(0,0,0,0)',
         plot_bgcolor: 'rgba(0,0,0,0)',
         font: { color: '#edf1ff' },
-        margin: { l: 16, r: 16, t: 16, b: 16 },
+        xaxis: { title: 'next meaningful move after feedback', side: 'bottom', automargin: true },
+        yaxis: { title: 'feedback category', automargin: true, autorange: 'reversed' },
+        margin: { l: 110, r: 24, t: 16, b: 72 },
       }, { responsive: true });
     }
 
@@ -1411,7 +1572,8 @@ def _build_dashboard_html(dashboard_data: dict[str, Any], *, title: str | None) 
     buildLaneSummary();
     buildLaneHandoffs();
     buildFeedbackNextAction();
-    buildEditFollowThrough();
+    buildAnchorOverview();
+    buildAnchorFollowThrough();
     buildTimeline();
     buildPromptComposition();
     buildControlTimeline();

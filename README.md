@@ -63,6 +63,7 @@ The immediate use case is analyzing traces like Laminar eval traces and similar 
 - `tests/test_laminar_loader.py` — shared URL and fetch-flow coverage
 - `tests/test_dashboard.py` — dashboard data and rendering coverage
 - `docs/dashboard_spec.md` — compact dashboard and metrics spec
+- `docs/dashboard_reading_guide.md` — how to read each dashboard view and what it can reveal
 - `docs/product_thesis.md` — what to borrow from trace viewers and what to avoid copying
 - `docs/laminar_parser.md` — parser assumptions, scope, and observed fields
 - `AGENTS.md` — repository memory and working conventions
@@ -85,13 +86,17 @@ The single-run dashboard now renders a standalone HTML file with teaching-orient
 2. search / edit / verify burden bar chart
 3. harness lane occupancy over wall-clock time
 4. lane summary and layer-to-layer handoffs
-5. feedback-to-next-action Sankey flow
-6. run timeline by action type
-7. normalized prompt makeup per LLM call
-8. control-event timeline
-9. step anatomy inspector
-10. cumulative progress lines
-11. top-file transition Sankey graph
+5. feedback → next meaningful move heatmap
+6. all anchors overview Sankey
+7. selected-anchor follow-through Sankey
+8. run timeline by action type
+9. normalized prompt makeup per LLM call
+10. control-event timeline
+11. step anatomy inspector
+12. cumulative progress lines
+13. top-file transition Sankey graph
+
+For a prose guide to what these charts mean and what they are useful for, see [`docs/dashboard_reading_guide.md`](./docs/dashboard_reading_guide.md).
 
 To render the included example dashboard:
 
