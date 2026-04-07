@@ -79148,13 +79148,6 @@
             "stage_label": "file content"
           },
           {
-            "id": "step:1:finalize",
-            "label": "finalize",
-            "kind": "step",
-            "stage": 1,
-            "stage_label": "finalize"
-          },
-          {
             "id": "step:1:repo listing",
             "label": "repo listing",
             "kind": "step",
@@ -79169,6 +79162,13 @@
             "stage_label": "test output"
           },
           {
+            "id": "step:2:finalize",
+            "label": "finalize",
+            "kind": "step",
+            "stage": 2,
+            "stage_label": "finalize"
+          },
+          {
             "id": "step:2:edit",
             "label": "edit",
             "kind": "step",
@@ -79181,13 +79181,6 @@
             "kind": "step",
             "stage": 2,
             "stage_label": "file content"
-          },
-          {
-            "id": "step:2:finalize",
-            "label": "finalize",
-            "kind": "step",
-            "stage": 2,
-            "stage_label": "finalize"
           },
           {
             "id": "step:2:repo listing",
@@ -79234,20 +79227,20 @@
           {
             "source": 0,
             "target": 3,
-            "value": 8,
-            "label": "inspect \u2192 finalize"
-          },
-          {
-            "source": 0,
-            "target": 4,
             "value": 2,
             "label": "inspect \u2192 repo listing"
           },
           {
             "source": 0,
-            "target": 5,
+            "target": 4,
             "value": 2,
             "label": "inspect \u2192 test output"
+          },
+          {
+            "source": 0,
+            "target": 5,
+            "value": 8,
+            "label": "inspect \u2192 finalize"
           },
           {
             "source": 1,
@@ -79263,31 +79256,31 @@
           },
           {
             "source": 1,
-            "target": 8,
+            "target": 5,
             "value": 1,
             "label": "edit \u2192 finalize"
           },
           {
             "source": 1,
-            "target": 9,
+            "target": 8,
             "value": 2,
             "label": "edit \u2192 repo listing"
           },
           {
             "source": 1,
-            "target": 10,
+            "target": 9,
             "value": 7,
             "label": "edit \u2192 test failure"
           },
           {
             "source": 1,
-            "target": 11,
+            "target": 10,
             "value": 2,
             "label": "edit \u2192 test output"
           },
           {
             "source": 1,
-            "target": 12,
+            "target": 11,
             "value": 1,
             "label": "edit \u2192 test pass"
           },
@@ -79305,37 +79298,37 @@
           },
           {
             "source": 2,
-            "target": 8,
+            "target": 5,
             "value": 1,
             "label": "file content \u2192 finalize"
           },
           {
             "source": 2,
-            "target": 11,
+            "target": 10,
             "value": 1,
             "label": "file content \u2192 test output"
           },
           {
-            "source": 4,
+            "source": 3,
             "target": 7,
             "value": 1,
             "label": "repo listing \u2192 file content"
           },
           {
-            "source": 4,
-            "target": 9,
+            "source": 3,
+            "target": 8,
             "value": 1,
             "label": "repo listing \u2192 repo listing"
           },
           {
-            "source": 5,
+            "source": 4,
             "target": 7,
             "value": 1,
             "label": "test output \u2192 file content"
           },
           {
-            "source": 5,
-            "target": 11,
+            "source": 4,
+            "target": 10,
             "value": 1,
             "label": "test output \u2192 test output"
           }
@@ -79366,13 +79359,6 @@
             "stage_label": "file content"
           },
           {
-            "id": "step:1:finalize",
-            "label": "finalize",
-            "kind": "step",
-            "stage": 1,
-            "stage_label": "finalize"
-          },
-          {
             "id": "step:1:repo listing",
             "label": "repo listing",
             "kind": "step",
@@ -79401,6 +79387,13 @@
             "stage_label": "test pass"
           },
           {
+            "id": "step:2:finalize",
+            "label": "finalize",
+            "kind": "step",
+            "stage": 2,
+            "stage_label": "finalize"
+          },
+          {
             "id": "step:2:file content",
             "label": "file content",
             "kind": "step",
@@ -79420,13 +79413,6 @@
             "kind": "step",
             "stage": 2,
             "stage_label": "edit"
-          },
-          {
-            "id": "step:2:finalize",
-            "label": "finalize",
-            "kind": "step",
-            "stage": 2,
-            "stage_label": "finalize"
           },
           {
             "id": "step:2:repo listing",
@@ -79459,32 +79445,32 @@
           {
             "source": 0,
             "target": 3,
-            "value": 4,
-            "label": "edit \u2192 finalize"
-          },
-          {
-            "source": 0,
-            "target": 4,
             "value": 2,
             "label": "edit \u2192 repo listing"
           },
           {
             "source": 0,
-            "target": 5,
+            "target": 4,
             "value": 18,
             "label": "edit \u2192 test failure"
           },
           {
             "source": 0,
-            "target": 6,
+            "target": 5,
             "value": 4,
             "label": "edit \u2192 test output"
           },
           {
             "source": 0,
-            "target": 7,
+            "target": 6,
             "value": 4,
             "label": "edit \u2192 test pass"
+          },
+          {
+            "source": 0,
+            "target": 7,
+            "value": 4,
+            "label": "edit \u2192 finalize"
           },
           {
             "source": 1,
@@ -79512,84 +79498,84 @@
           },
           {
             "source": 2,
-            "target": 11,
+            "target": 7,
             "value": 1,
             "label": "file content \u2192 finalize"
           },
           {
-            "source": 4,
+            "source": 3,
             "target": 10,
             "value": 1,
             "label": "repo listing \u2192 edit"
           },
           {
-            "source": 4,
+            "source": 3,
             "target": 8,
             "value": 1,
             "label": "repo listing \u2192 file content"
           },
           {
-            "source": 5,
+            "source": 4,
             "target": 10,
             "value": 1,
             "label": "test failure \u2192 edit"
           },
           {
-            "source": 5,
+            "source": 4,
             "target": 8,
             "value": 3,
             "label": "test failure \u2192 file content"
           },
           {
-            "source": 5,
-            "target": 11,
+            "source": 4,
+            "target": 7,
             "value": 1,
             "label": "test failure \u2192 finalize"
           },
           {
-            "source": 5,
-            "target": 12,
+            "source": 4,
+            "target": 11,
             "value": 3,
             "label": "test failure \u2192 repo listing"
           },
           {
-            "source": 5,
+            "source": 4,
             "target": 9,
             "value": 4,
             "label": "test failure \u2192 test failure"
           },
           {
-            "source": 5,
-            "target": 13,
+            "source": 4,
+            "target": 12,
             "value": 6,
             "label": "test failure \u2192 test output"
           },
           {
-            "source": 6,
+            "source": 5,
             "target": 10,
             "value": 2,
             "label": "test output \u2192 edit"
           },
           {
-            "source": 6,
-            "target": 12,
+            "source": 5,
+            "target": 11,
             "value": 1,
             "label": "test output \u2192 repo listing"
           },
           {
-            "source": 6,
+            "source": 5,
             "target": 9,
             "value": 1,
             "label": "test output \u2192 test failure"
           },
           {
-            "source": 7,
-            "target": 12,
+            "source": 6,
+            "target": 11,
             "value": 1,
             "label": "test pass \u2192 repo listing"
           },
           {
-            "source": 7,
+            "source": 6,
             "target": 9,
             "value": 3,
             "label": "test pass \u2192 test failure"
@@ -79621,13 +79607,6 @@
             "stage_label": "file content"
           },
           {
-            "id": "step:1:finalize",
-            "label": "finalize",
-            "kind": "step",
-            "stage": 1,
-            "stage_label": "finalize"
-          },
-          {
             "id": "step:1:repo listing",
             "label": "repo listing",
             "kind": "step",
@@ -79647,6 +79626,13 @@
             "kind": "step",
             "stage": 1,
             "stage_label": "test output"
+          },
+          {
+            "id": "step:2:finalize",
+            "label": "finalize",
+            "kind": "step",
+            "stage": 2,
+            "stage_label": "finalize"
           },
           {
             "id": "step:2:test failure",
@@ -79682,13 +79668,6 @@
             "kind": "step",
             "stage": 2,
             "stage_label": "test output"
-          },
-          {
-            "id": "step:2:finalize",
-            "label": "finalize",
-            "kind": "step",
-            "stage": 2,
-            "stage_label": "finalize"
           }
         ],
         "links": [
@@ -79707,26 +79686,26 @@
           {
             "source": 0,
             "target": 3,
-            "value": 2,
-            "label": "test failure \u2192 finalize"
-          },
-          {
-            "source": 0,
-            "target": 4,
             "value": 3,
             "label": "test failure \u2192 repo listing"
           },
           {
             "source": 0,
-            "target": 5,
+            "target": 4,
             "value": 4,
             "label": "test failure \u2192 test failure"
           },
           {
             "source": 0,
-            "target": 6,
+            "target": 5,
             "value": 8,
             "label": "test failure \u2192 test output"
+          },
+          {
+            "source": 0,
+            "target": 6,
+            "value": 2,
+            "label": "test failure \u2192 finalize"
           },
           {
             "source": 1,
@@ -79753,55 +79732,55 @@
             "label": "file content \u2192 file content"
           },
           {
-            "source": 4,
+            "source": 3,
             "target": 9,
             "value": 1,
             "label": "repo listing \u2192 edit"
           },
           {
-            "source": 4,
+            "source": 3,
             "target": 10,
             "value": 1,
             "label": "repo listing \u2192 file content"
           },
           {
-            "source": 4,
+            "source": 3,
             "target": 11,
             "value": 1,
             "label": "repo listing \u2192 test output"
           },
           {
-            "source": 5,
+            "source": 4,
             "target": 9,
             "value": 1,
             "label": "test failure \u2192 edit"
           },
           {
-            "source": 5,
+            "source": 4,
             "target": 10,
             "value": 1,
             "label": "test failure \u2192 file content"
           },
           {
-            "source": 5,
-            "target": 12,
+            "source": 4,
+            "target": 6,
             "value": 1,
             "label": "test failure \u2192 finalize"
           },
           {
-            "source": 5,
+            "source": 4,
             "target": 11,
             "value": 1,
             "label": "test failure \u2192 test output"
           },
           {
-            "source": 6,
+            "source": 5,
             "target": 9,
             "value": 5,
             "label": "test output \u2192 edit"
           },
           {
-            "source": 6,
+            "source": 5,
             "target": 10,
             "value": 3,
             "label": "test output \u2192 file content"
@@ -79913,13 +79892,6 @@
           "stage_label": "file content"
         },
         {
-          "id": "step:1:finalize",
-          "label": "finalize",
-          "kind": "step",
-          "stage": 1,
-          "stage_label": "finalize"
-        },
-        {
           "id": "step:1:repo listing",
           "label": "repo listing",
           "kind": "step",
@@ -79946,6 +79918,13 @@
           "kind": "step",
           "stage": 1,
           "stage_label": "test pass"
+        },
+        {
+          "id": "step:2:finalize",
+          "label": "finalize",
+          "kind": "step",
+          "stage": 2,
+          "stage_label": "finalize"
         },
         {
           "id": "anchor:0:inspect",
@@ -79981,13 +79960,6 @@
           "kind": "step",
           "stage": 2,
           "stage_label": "file content"
-        },
-        {
-          "id": "step:2:finalize",
-          "label": "finalize",
-          "kind": "step",
-          "stage": 2,
-          "stage_label": "finalize"
         },
         {
           "id": "step:2:repo listing",
@@ -80034,32 +80006,32 @@
         {
           "source": 0,
           "target": 3,
-          "value": 4,
-          "label": "edit \u2192 finalize"
-        },
-        {
-          "source": 0,
-          "target": 4,
           "value": 2,
           "label": "edit \u2192 repo listing"
         },
         {
           "source": 0,
-          "target": 5,
+          "target": 4,
           "value": 18,
           "label": "edit \u2192 test failure"
         },
         {
           "source": 0,
-          "target": 6,
+          "target": 5,
           "value": 4,
           "label": "edit \u2192 test output"
         },
         {
           "source": 0,
-          "target": 7,
+          "target": 6,
           "value": 4,
           "label": "edit \u2192 test pass"
+        },
+        {
+          "source": 0,
+          "target": 7,
+          "value": 4,
+          "label": "edit \u2192 finalize"
         },
         {
           "source": 8,
@@ -80076,20 +80048,20 @@
         {
           "source": 8,
           "target": 3,
-          "value": 8,
-          "label": "inspect \u2192 finalize"
-        },
-        {
-          "source": 8,
-          "target": 4,
           "value": 2,
           "label": "inspect \u2192 repo listing"
         },
         {
           "source": 8,
-          "target": 6,
+          "target": 5,
           "value": 2,
           "label": "inspect \u2192 test output"
+        },
+        {
+          "source": 8,
+          "target": 7,
+          "value": 8,
+          "label": "inspect \u2192 finalize"
         },
         {
           "source": 9,
@@ -80106,36 +80078,36 @@
         {
           "source": 9,
           "target": 3,
-          "value": 2,
-          "label": "test failure \u2192 finalize"
-        },
-        {
-          "source": 9,
-          "target": 4,
           "value": 3,
           "label": "test failure \u2192 repo listing"
         },
         {
           "source": 9,
-          "target": 5,
+          "target": 4,
           "value": 4,
           "label": "test failure \u2192 test failure"
         },
         {
           "source": 9,
-          "target": 6,
+          "target": 5,
           "value": 8,
           "label": "test failure \u2192 test output"
         },
         {
+          "source": 9,
+          "target": 7,
+          "value": 2,
+          "label": "test failure \u2192 finalize"
+        },
+        {
           "source": 10,
-          "target": 4,
+          "target": 3,
           "value": 1,
           "label": "test pass \u2192 repo listing"
         },
         {
           "source": 10,
-          "target": 5,
+          "target": 4,
           "value": 3,
           "label": "test pass \u2192 test failure"
         },
@@ -80153,31 +80125,31 @@
         },
         {
           "source": 1,
-          "target": 13,
+          "target": 7,
           "value": 1,
           "label": "edit \u2192 finalize"
         },
         {
           "source": 1,
-          "target": 14,
+          "target": 13,
           "value": 2,
           "label": "edit \u2192 repo listing"
         },
         {
           "source": 1,
-          "target": 15,
+          "target": 14,
           "value": 10,
           "label": "edit \u2192 test failure"
         },
         {
           "source": 1,
-          "target": 16,
+          "target": 15,
           "value": 2,
           "label": "edit \u2192 test output"
         },
         {
           "source": 1,
-          "target": 17,
+          "target": 16,
           "value": 3,
           "label": "edit \u2192 test pass"
         },
@@ -80195,121 +80167,121 @@
         },
         {
           "source": 2,
-          "target": 13,
+          "target": 7,
           "value": 2,
           "label": "file content \u2192 finalize"
         },
         {
           "source": 2,
-          "target": 16,
+          "target": 15,
           "value": 1,
           "label": "file content \u2192 test output"
         },
         {
-          "source": 4,
+          "source": 3,
           "target": 11,
           "value": 2,
           "label": "repo listing \u2192 edit"
         },
         {
-          "source": 4,
+          "source": 3,
           "target": 12,
           "value": 3,
           "label": "repo listing \u2192 file content"
         },
         {
-          "source": 4,
-          "target": 13,
+          "source": 3,
+          "target": 7,
           "value": 1,
           "label": "repo listing \u2192 finalize"
         },
         {
-          "source": 4,
-          "target": 14,
+          "source": 3,
+          "target": 13,
           "value": 1,
           "label": "repo listing \u2192 repo listing"
         },
         {
-          "source": 4,
-          "target": 16,
+          "source": 3,
+          "target": 15,
           "value": 1,
           "label": "repo listing \u2192 test output"
         },
         {
-          "source": 5,
+          "source": 4,
           "target": 11,
           "value": 4,
           "label": "test failure \u2192 edit"
         },
         {
-          "source": 5,
+          "source": 4,
           "target": 12,
           "value": 5,
           "label": "test failure \u2192 file content"
         },
         {
-          "source": 5,
-          "target": 13,
+          "source": 4,
+          "target": 7,
           "value": 2,
           "label": "test failure \u2192 finalize"
         },
         {
-          "source": 5,
-          "target": 14,
+          "source": 4,
+          "target": 13,
           "value": 3,
           "label": "test failure \u2192 repo listing"
         },
         {
-          "source": 5,
-          "target": 15,
+          "source": 4,
+          "target": 14,
           "value": 4,
           "label": "test failure \u2192 test failure"
         },
         {
-          "source": 5,
-          "target": 16,
+          "source": 4,
+          "target": 15,
           "value": 7,
           "label": "test failure \u2192 test output"
         },
         {
-          "source": 6,
+          "source": 5,
           "target": 11,
           "value": 7,
           "label": "test output \u2192 edit"
         },
         {
-          "source": 6,
+          "source": 5,
           "target": 12,
           "value": 4,
           "label": "test output \u2192 file content"
         },
         {
-          "source": 6,
-          "target": 14,
+          "source": 5,
+          "target": 13,
           "value": 1,
           "label": "test output \u2192 repo listing"
         },
         {
-          "source": 6,
-          "target": 15,
+          "source": 5,
+          "target": 14,
           "value": 1,
           "label": "test output \u2192 test failure"
         },
         {
-          "source": 6,
-          "target": 16,
+          "source": 5,
+          "target": 15,
           "value": 1,
           "label": "test output \u2192 test output"
         },
         {
-          "source": 7,
-          "target": 14,
+          "source": 6,
+          "target": 13,
           "value": 1,
           "label": "test pass \u2192 repo listing"
         },
         {
-          "source": 7,
-          "target": 15,
+          "source": 6,
+          "target": 14,
           "value": 3,
           "label": "test pass \u2192 test failure"
         }

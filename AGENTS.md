@@ -71,8 +71,12 @@ Current implemented artifacts:
 - The comparison page includes run focus snapshots showing top modules and top files, which is useful when same-benchmark traces have similar action mixes but touch different code areas.
 - GitHub Pages publishing is intentionally minimal: a hand-written root `index.html` plus `.github/workflows/deploy-pages.yml`, which copies a curated set of standalone HTML dashboards into `_site`; update both files together when changing the showcase. The current gallery keeps the four-live comparison plus the four single-trace dashboards, and intentionally drops the older baseline and two-live comparison pages.
 - README is now intentionally showcase-first: it should lead with the live gallery, explain what the visualizations reveal, and keep local rendering instructions brief and secondary.
+- The current showcased trace artifacts should be attributed to the OpenHands Index: https://huggingface.co/spaces/OpenHands/openhands-index .
+
 
 - The older `Feedback to next action` Sankey has been replaced by `Feedback → next meaningful move heatmap`, which shows raw counts for feedback-category → next-meaningful-move pairs and collapses routine `execute` spans into outcomes like `test failure`, `test pass`, `file content`, or shell output so `execute` does not dominate the x-axis.
+- In anchor Sankey views, `finalize` is now normalized to a single terminal sink even when some paths end immediately and others reach finalize after one more meaningful step; this avoids duplicate `finalize` nodes in the rightmost column.
+
 - Single-run dashboards also include both `All anchors overview` and the selector-driven `Selected anchor: next two meaningful moves`. The selector lets you choose `inspect`, `edit`, `test failure`, or `test pass`, then shows the next two meaningful nodes while skipping `plan`/`overhead` and collapsing routine `execute` spans into observed outcomes like `test failure`, `test pass`, `file content`, or shell output. The overview combines all those anchors into one denser Sankey for an at-a-glance branch mix.
 - `finalize` is treated as a useful endpoint/sink in those staged views, but not as a starting anchor. In dashboard copy, it means the run appeared to conclude or submit an answer, not necessarily the literal last raw event in the trace.
 - Feedback categorization now prefers explicit test outcomes (`test failure` / `test pass`) over a generic `tool error` label for test-run events.

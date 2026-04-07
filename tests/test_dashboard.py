@@ -173,6 +173,85 @@ class DashboardTestCase(unittest.TestCase):
         self.assertIn("test pass → finalize", overview_labels)
         self.assertFalse(flow_data["test_pass"]["nodes"][0]["label"] == "finalize")
 
+    def test_anchor_follow_through_uses_single_finalize_sink(self) -> None:
+        base_time = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        events = [
+            NormalizedEvent(
+                run_id="trace-anchor-finalize-sink",
+                step_id="step-1",
+                action_type=ActionType.EDIT,
+                source=EventSource.TOOL,
+                event_type=EventType.FILE_EDIT,
+                status=StepStatus.SUCCESS,
+                timestamp_start=base_time,
+                timestamp_end=base_time + timedelta(seconds=1),
+                file_paths=("/workspace/app.py",),
+                tool_name="file_editor",
+            ),
+            NormalizedEvent(
+                run_id="trace-anchor-finalize-sink",
+                step_id="step-2",
+                action_type=ActionType.FINALIZE,
+                source=EventSource.SYSTEM,
+                event_type=EventType.MESSAGE,
+                status=StepStatus.SUCCESS,
+                timestamp_start=base_time + timedelta(seconds=2),
+                timestamp_end=base_time + timedelta(seconds=3),
+                tool_name="finish",
+            ),
+            NormalizedEvent(
+                run_id="trace-anchor-finalize-sink",
+                step_id="step-3",
+                action_type=ActionType.EDIT,
+                source=EventSource.TOOL,
+                event_type=EventType.FILE_EDIT,
+                status=StepStatus.SUCCESS,
+                timestamp_start=base_time + timedelta(seconds=4),
+                timestamp_end=base_time + timedelta(seconds=5),
+                file_paths=("/workspace/app.py",),
+                tool_name="file_editor",
+            ),
+            NormalizedEvent(
+                run_id="trace-anchor-finalize-sink",
+                step_id="step-4",
+                action_type=ActionType.EXECUTE,
+                source=EventSource.TOOL,
+                event_type=EventType.TEST_RUN,
+                status=StepStatus.SUCCESS,
+                timestamp_start=base_time + timedelta(seconds=6),
+                timestamp_end=base_time + timedelta(seconds=7),
+                test_count=1,
+                tests_passed=1,
+                tool_name="terminal",
+                metadata={"output": "1 passed"},
+            ),
+            NormalizedEvent(
+                run_id="trace-anchor-finalize-sink",
+                step_id="step-5",
+                action_type=ActionType.FINALIZE,
+                source=EventSource.SYSTEM,
+                event_type=EventType.MESSAGE,
+                status=StepStatus.SUCCESS,
+                timestamp_start=base_time + timedelta(seconds=8),
+                timestamp_end=base_time + timedelta(seconds=9),
+                tool_name="finish",
+            ),
+        ]
+
+        flow_payload = build_single_run_dashboard_data(events)["anchor_follow_through"]
+        edit_graph = flow_payload["graphs"]["edit"]
+        overview_graph = flow_payload["overview_graph"]
+
+        edit_finalize_nodes = [node for node in edit_graph["nodes"] if node["label"] == "finalize"]
+        overview_finalize_nodes = [node for node in overview_graph["nodes"] if node["label"] == "finalize"]
+
+        self.assertEqual(len(edit_finalize_nodes), 1)
+        self.assertEqual(edit_finalize_nodes[0]["stage"], 2)
+        self.assertEqual(len(overview_finalize_nodes), 1)
+        self.assertEqual(overview_finalize_nodes[0]["stage"], 2)
+        self.assertIn("edit → finalize", {link["label"] for link in edit_graph["links"]})
+        self.assertIn("test pass → finalize", {link["label"] for link in overview_graph["links"]})
+
     def test_feedback_action_heatmap_counts_next_actions_by_category(self) -> None:
         base_time = datetime(2024, 1, 1, tzinfo=timezone.utc)
         events = [

@@ -62607,13 +62607,6 @@
             "stage_label": "file content"
           },
           {
-            "id": "step:1:finalize",
-            "label": "finalize",
-            "kind": "step",
-            "stage": 1,
-            "stage_label": "finalize"
-          },
-          {
             "id": "step:1:repo listing",
             "label": "repo listing",
             "kind": "step",
@@ -62626,6 +62619,13 @@
             "kind": "step",
             "stage": 1,
             "stage_label": "test output"
+          },
+          {
+            "id": "step:2:finalize",
+            "label": "finalize",
+            "kind": "step",
+            "stage": 2,
+            "stage_label": "finalize"
           },
           {
             "id": "step:2:edit",
@@ -62656,13 +62656,6 @@
             "stage_label": "file content"
           },
           {
-            "id": "step:2:finalize",
-            "label": "finalize",
-            "kind": "step",
-            "stage": 2,
-            "stage_label": "finalize"
-          },
-          {
             "id": "step:2:test pass",
             "label": "test pass",
             "kind": "step",
@@ -62686,20 +62679,20 @@
           {
             "source": 0,
             "target": 3,
-            "value": 5,
-            "label": "inspect \u2192 finalize"
-          },
-          {
-            "source": 0,
-            "target": 4,
             "value": 25,
             "label": "inspect \u2192 repo listing"
           },
           {
             "source": 0,
-            "target": 5,
+            "target": 4,
             "value": 1,
             "label": "inspect \u2192 test output"
+          },
+          {
+            "source": 0,
+            "target": 5,
+            "value": 5,
+            "label": "inspect \u2192 finalize"
           },
           {
             "source": 1,
@@ -62733,7 +62726,7 @@
           },
           {
             "source": 2,
-            "target": 10,
+            "target": 5,
             "value": 1,
             "label": "file content \u2192 finalize"
           },
@@ -62744,38 +62737,38 @@
             "label": "file content \u2192 repo listing"
           },
           {
-            "source": 4,
+            "source": 3,
             "target": 6,
             "value": 4,
             "label": "repo listing \u2192 edit"
           },
           {
-            "source": 4,
+            "source": 3,
             "target": 9,
             "value": 6,
             "label": "repo listing \u2192 file content"
           },
           {
-            "source": 4,
-            "target": 10,
+            "source": 3,
+            "target": 5,
             "value": 2,
             "label": "repo listing \u2192 finalize"
           },
           {
-            "source": 4,
+            "source": 3,
             "target": 7,
             "value": 12,
             "label": "repo listing \u2192 repo listing"
           },
           {
-            "source": 4,
+            "source": 3,
             "target": 8,
             "value": 1,
             "label": "repo listing \u2192 test output"
           },
           {
-            "source": 5,
-            "target": 11,
+            "source": 4,
+            "target": 10,
             "value": 1,
             "label": "test output \u2192 test pass"
           }
@@ -62806,13 +62799,6 @@
             "stage_label": "file content"
           },
           {
-            "id": "step:1:finalize",
-            "label": "finalize",
-            "kind": "step",
-            "stage": 1,
-            "stage_label": "finalize"
-          },
-          {
             "id": "step:1:repo listing",
             "label": "repo listing",
             "kind": "step",
@@ -62827,6 +62813,13 @@
             "stage_label": "test output"
           },
           {
+            "id": "step:2:finalize",
+            "label": "finalize",
+            "kind": "step",
+            "stage": 2,
+            "stage_label": "finalize"
+          },
+          {
             "id": "step:2:edit",
             "label": "edit",
             "kind": "step",
@@ -62839,13 +62832,6 @@
             "kind": "step",
             "stage": 2,
             "stage_label": "file content"
-          },
-          {
-            "id": "step:2:finalize",
-            "label": "finalize",
-            "kind": "step",
-            "stage": 2,
-            "stage_label": "finalize"
           },
           {
             "id": "step:2:repo listing",
@@ -62871,20 +62857,20 @@
           {
             "source": 0,
             "target": 3,
-            "value": 2,
-            "label": "edit \u2192 finalize"
-          },
-          {
-            "source": 0,
-            "target": 4,
             "value": 6,
             "label": "edit \u2192 repo listing"
           },
           {
             "source": 0,
-            "target": 5,
+            "target": 4,
             "value": 1,
             "label": "edit \u2192 test output"
+          },
+          {
+            "source": 0,
+            "target": 5,
+            "value": 2,
+            "label": "edit \u2192 finalize"
           },
           {
             "source": 1,
@@ -62900,13 +62886,13 @@
           },
           {
             "source": 1,
-            "target": 8,
+            "target": 5,
             "value": 1,
             "label": "edit \u2192 finalize"
           },
           {
             "source": 1,
-            "target": 9,
+            "target": 8,
             "value": 2,
             "label": "edit \u2192 repo listing"
           },
@@ -62923,32 +62909,32 @@
             "label": "file content \u2192 file content"
           },
           {
-            "source": 4,
+            "source": 3,
             "target": 6,
             "value": 1,
             "label": "repo listing \u2192 edit"
           },
           {
-            "source": 4,
+            "source": 3,
             "target": 7,
             "value": 1,
             "label": "repo listing \u2192 file content"
           },
           {
-            "source": 4,
-            "target": 8,
+            "source": 3,
+            "target": 5,
             "value": 1,
             "label": "repo listing \u2192 finalize"
           },
           {
-            "source": 4,
-            "target": 9,
+            "source": 3,
+            "target": 8,
             "value": 3,
             "label": "repo listing \u2192 repo listing"
           },
           {
-            "source": 5,
-            "target": 9,
+            "source": 4,
+            "target": 8,
             "value": 1,
             "label": "test output \u2192 repo listing"
           }
@@ -62970,18 +62956,18 @@
             "stage_label": "test pass"
           },
           {
-            "id": "step:1:finalize",
-            "label": "finalize",
-            "kind": "step",
-            "stage": 1,
-            "stage_label": "finalize"
-          },
-          {
             "id": "step:1:repo listing",
             "label": "repo listing",
             "kind": "step",
             "stage": 1,
             "stage_label": "repo listing"
+          },
+          {
+            "id": "step:2:finalize",
+            "label": "finalize",
+            "kind": "step",
+            "stage": 2,
+            "stage_label": "finalize"
           },
           {
             "id": "step:2:file content",
@@ -62996,16 +62982,16 @@
             "source": 0,
             "target": 1,
             "value": 1,
-            "label": "test pass \u2192 finalize"
+            "label": "test pass \u2192 repo listing"
           },
           {
             "source": 0,
             "target": 2,
             "value": 1,
-            "label": "test pass \u2192 repo listing"
+            "label": "test pass \u2192 finalize"
           },
           {
-            "source": 2,
+            "source": 1,
             "target": 3,
             "value": 1,
             "label": "repo listing \u2192 file content"
@@ -63038,13 +63024,6 @@
           "stage_label": "file content"
         },
         {
-          "id": "step:1:finalize",
-          "label": "finalize",
-          "kind": "step",
-          "stage": 1,
-          "stage_label": "finalize"
-        },
-        {
           "id": "step:1:repo listing",
           "label": "repo listing",
           "kind": "step",
@@ -63057,6 +63036,13 @@
           "kind": "step",
           "stage": 1,
           "stage_label": "test output"
+        },
+        {
+          "id": "step:2:finalize",
+          "label": "finalize",
+          "kind": "step",
+          "stage": 2,
+          "stage_label": "finalize"
         },
         {
           "id": "anchor:0:inspect",
@@ -63085,13 +63071,6 @@
           "kind": "step",
           "stage": 2,
           "stage_label": "file content"
-        },
-        {
-          "id": "step:2:finalize",
-          "label": "finalize",
-          "kind": "step",
-          "stage": 2,
-          "stage_label": "finalize"
         },
         {
           "id": "step:2:repo listing",
@@ -63131,20 +63110,20 @@
         {
           "source": 0,
           "target": 3,
-          "value": 2,
-          "label": "edit \u2192 finalize"
-        },
-        {
-          "source": 0,
-          "target": 4,
           "value": 6,
           "label": "edit \u2192 repo listing"
         },
         {
           "source": 0,
-          "target": 5,
+          "target": 4,
           "value": 1,
           "label": "edit \u2192 test output"
+        },
+        {
+          "source": 0,
+          "target": 5,
+          "value": 2,
+          "label": "edit \u2192 finalize"
         },
         {
           "source": 6,
@@ -63161,32 +63140,32 @@
         {
           "source": 6,
           "target": 3,
-          "value": 5,
-          "label": "inspect \u2192 finalize"
-        },
-        {
-          "source": 6,
-          "target": 4,
           "value": 25,
           "label": "inspect \u2192 repo listing"
         },
         {
           "source": 6,
-          "target": 5,
+          "target": 4,
           "value": 1,
           "label": "inspect \u2192 test output"
+        },
+        {
+          "source": 6,
+          "target": 5,
+          "value": 5,
+          "label": "inspect \u2192 finalize"
         },
         {
           "source": 7,
           "target": 3,
           "value": 1,
-          "label": "test pass \u2192 finalize"
+          "label": "test pass \u2192 repo listing"
         },
         {
           "source": 7,
-          "target": 4,
+          "target": 5,
           "value": 1,
-          "label": "test pass \u2192 repo listing"
+          "label": "test pass \u2192 finalize"
         },
         {
           "source": 1,
@@ -63202,19 +63181,19 @@
         },
         {
           "source": 1,
-          "target": 10,
+          "target": 5,
           "value": 1,
           "label": "edit \u2192 finalize"
         },
         {
           "source": 1,
-          "target": 11,
+          "target": 10,
           "value": 6,
           "label": "edit \u2192 repo listing"
         },
         {
           "source": 1,
-          "target": 12,
+          "target": 11,
           "value": 1,
           "label": "edit \u2192 test output"
         },
@@ -63232,55 +63211,55 @@
         },
         {
           "source": 2,
-          "target": 10,
+          "target": 5,
           "value": 1,
           "label": "file content \u2192 finalize"
         },
         {
           "source": 2,
-          "target": 11,
+          "target": 10,
           "value": 7,
           "label": "file content \u2192 repo listing"
         },
         {
-          "source": 4,
+          "source": 3,
           "target": 8,
           "value": 5,
           "label": "repo listing \u2192 edit"
         },
         {
-          "source": 4,
+          "source": 3,
           "target": 9,
           "value": 8,
           "label": "repo listing \u2192 file content"
         },
         {
-          "source": 4,
-          "target": 10,
+          "source": 3,
+          "target": 5,
           "value": 3,
           "label": "repo listing \u2192 finalize"
         },
         {
-          "source": 4,
-          "target": 11,
+          "source": 3,
+          "target": 10,
           "value": 15,
           "label": "repo listing \u2192 repo listing"
         },
         {
-          "source": 4,
-          "target": 12,
+          "source": 3,
+          "target": 11,
           "value": 1,
           "label": "repo listing \u2192 test output"
         },
         {
-          "source": 5,
-          "target": 11,
+          "source": 4,
+          "target": 10,
           "value": 1,
           "label": "test output \u2192 repo listing"
         },
         {
-          "source": 5,
-          "target": 13,
+          "source": 4,
+          "target": 12,
           "value": 1,
           "label": "test output \u2192 test pass"
         }

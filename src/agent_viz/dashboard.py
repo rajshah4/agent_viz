@@ -526,7 +526,11 @@ def _build_anchor_graph(paths: list[list[str]]) -> dict[str, Any]:
     links: list[dict[str, Any]] = []
 
     for path in paths:
-        staged_path = [(("anchor" if stage == 0 else "step"), stage, label) for stage, label in enumerate(path)]
+        staged_path = []
+        for stage, label in enumerate(path):
+            kind = "anchor" if stage == 0 else "step"
+            normalized_stage = 2 if kind == "step" and label == ActionType.FINALIZE.value else stage
+            staged_path.append((kind, normalized_stage, label))
         for source_node, target_node in zip(staged_path, staged_path[1:]):
             transitions[(source_node, target_node)] += 1
 

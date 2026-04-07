@@ -8,7 +8,7 @@ Visual analytics for understanding how coding agents behave on long-running task
 
 `agent_viz` turns agent traces into compact visual explanations of what happened during a run, where time and tokens went, and whether the run was converging or just getting heavier.
 
-The immediate focus is shared Laminar traces and similar coding-agent trajectories, but the product goal is broader: make long agent runs legible to humans.
+The current showcased traces come from the [OpenHands Index](https://huggingface.co/spaces/OpenHands/openhands-index). The immediate focus is shared Laminar traces and similar coding-agent trajectories, but the product goal is broader: make long agent runs legible to humans.
 
 ## What these dashboards are for
 

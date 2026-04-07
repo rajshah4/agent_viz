@@ -20153,13 +20153,6 @@
             "stage_label": "edit"
           },
           {
-            "id": "step:1:finalize",
-            "label": "finalize",
-            "kind": "step",
-            "stage": 1,
-            "stage_label": "finalize"
-          },
-          {
             "id": "step:1:test output",
             "label": "test output",
             "kind": "step",
@@ -20172,6 +20165,13 @@
             "kind": "step",
             "stage": 1,
             "stage_label": "test pass"
+          },
+          {
+            "id": "step:2:finalize",
+            "label": "finalize",
+            "kind": "step",
+            "stage": 2,
+            "stage_label": "finalize"
           },
           {
             "id": "step:2:edit",
@@ -20220,19 +20220,19 @@
             "source": 0,
             "target": 2,
             "value": 1,
-            "label": "edit \u2192 finalize"
-          },
-          {
-            "source": 0,
-            "target": 3,
-            "value": 1,
             "label": "edit \u2192 test output"
           },
           {
             "source": 0,
-            "target": 4,
+            "target": 3,
             "value": 2,
             "label": "edit \u2192 test pass"
+          },
+          {
+            "source": 0,
+            "target": 4,
+            "value": 1,
+            "label": "edit \u2192 finalize"
           },
           {
             "source": 1,
@@ -20253,19 +20253,19 @@
             "label": "edit \u2192 test pass"
           },
           {
-            "source": 3,
+            "source": 2,
             "target": 8,
             "value": 1,
             "label": "test output \u2192 test failure"
           },
           {
-            "source": 4,
+            "source": 3,
             "target": 5,
             "value": 1,
             "label": "test pass \u2192 edit"
           },
           {
-            "source": 4,
+            "source": 3,
             "target": 9,
             "value": 1,
             "label": "test pass \u2192 repo listing"
@@ -20390,13 +20390,6 @@
           "stage_label": "edit"
         },
         {
-          "id": "step:1:finalize",
-          "label": "finalize",
-          "kind": "step",
-          "stage": 1,
-          "stage_label": "finalize"
-        },
-        {
           "id": "step:1:test output",
           "label": "test output",
           "kind": "step",
@@ -20409,6 +20402,13 @@
           "kind": "step",
           "stage": 1,
           "stage_label": "test pass"
+        },
+        {
+          "id": "step:2:finalize",
+          "label": "finalize",
+          "kind": "step",
+          "stage": 2,
+          "stage_label": "finalize"
         },
         {
           "id": "anchor:0:inspect",
@@ -20451,13 +20451,6 @@
           "kind": "step",
           "stage": 2,
           "stage_label": "edit"
-        },
-        {
-          "id": "step:2:finalize",
-          "label": "finalize",
-          "kind": "step",
-          "stage": 2,
-          "stage_label": "finalize"
         },
         {
           "id": "step:2:test output",
@@ -20506,19 +20499,19 @@
           "source": 0,
           "target": 2,
           "value": 1,
-          "label": "edit \u2192 finalize"
-        },
-        {
-          "source": 0,
-          "target": 3,
-          "value": 1,
           "label": "edit \u2192 test output"
         },
         {
           "source": 0,
-          "target": 4,
+          "target": 3,
           "value": 2,
           "label": "edit \u2192 test pass"
+        },
+        {
+          "source": 0,
+          "target": 4,
+          "value": 1,
+          "label": "edit \u2192 finalize"
         },
         {
           "source": 5,
@@ -20540,7 +20533,7 @@
         },
         {
           "source": 5,
-          "target": 3,
+          "target": 2,
           "value": 2,
           "label": "inspect \u2192 test output"
         },
@@ -20570,31 +20563,31 @@
         },
         {
           "source": 1,
-          "target": 11,
+          "target": 4,
           "value": 1,
           "label": "edit \u2192 finalize"
         },
         {
           "source": 1,
-          "target": 12,
+          "target": 11,
           "value": 1,
           "label": "edit \u2192 test output"
         },
         {
           "source": 1,
-          "target": 13,
+          "target": 12,
           "value": 2,
           "label": "edit \u2192 test pass"
         },
         {
           "source": 6,
-          "target": 14,
+          "target": 13,
           "value": 6,
           "label": "file content \u2192 file content"
         },
         {
           "source": 6,
-          "target": 15,
+          "target": 14,
           "value": 1,
           "label": "file content \u2192 repo listing"
         },
@@ -20606,43 +20599,43 @@
         },
         {
           "source": 7,
-          "target": 14,
+          "target": 13,
           "value": 1,
           "label": "repo listing \u2192 file content"
         },
         {
           "source": 7,
-          "target": 12,
+          "target": 11,
           "value": 2,
           "label": "repo listing \u2192 test output"
         },
         {
-          "source": 3,
-          "target": 15,
+          "source": 2,
+          "target": 14,
           "value": 1,
           "label": "test output \u2192 repo listing"
         },
         {
-          "source": 3,
-          "target": 16,
+          "source": 2,
+          "target": 15,
           "value": 1,
           "label": "test output \u2192 test failure"
         },
         {
-          "source": 3,
-          "target": 12,
+          "source": 2,
+          "target": 11,
           "value": 1,
           "label": "test output \u2192 test output"
         },
         {
-          "source": 4,
+          "source": 3,
           "target": 10,
           "value": 1,
           "label": "test pass \u2192 edit"
         },
         {
-          "source": 4,
-          "target": 15,
+          "source": 3,
+          "target": 14,
           "value": 1,
           "label": "test pass \u2192 repo listing"
         }
